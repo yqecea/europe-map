@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Контурная карта Европы | EuroContour</title>
+    <meta name="description" content="Интерактивная учебная карта Европы для изучения стран и столиц">
+    <meta property="og:title" content="EuroContour - Интерактивная карта Европы">
+    <meta property="og:description" content="Учебный инструмент для изучения европейских стран и столиц">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a24;
+            --bg-glass: rgba(18, 18, 26, 0.85);
+            --text-primary: #f0f0f5;
+            --text-secondary: #a0a0b0;
+            --text-muted: #606070;
+            --accent: #6366f1;
+            --accent-light: #818cf8;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --border: rgba(255, 255, 255, 0.08);
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --sidebar-w: 360px;
+            --radius: 12px
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            height: 100dvh
+        }
+
+        .app {
+            display: flex;
+            height: 100vh;
+            height: 100dvh
+        }
+
+        .sidebar {
+            width: var(--sidebar-w);
+            min-width: var(--sidebar-w);
+            height: 100%;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000
+        }
+
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), transparent);
+            backdrop-filter: blur(10px)
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .lang-switch {
+            display: flex;
+            gap: 4px
+        }
+
+        .lang-btn {
+            padding: 6px 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s
+        }
+
+        .lang-btn:hover,
+        .lang-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent)
+        }
+
+        .subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted)
+        }
+
+        .controls {
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 10px
+        }
+
+        .search {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s
+        }
+
+        .search:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow)
+        }
+
+        .search::placeholder {
+            color: var(--text-muted)
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px
+        }
+
+        .action-btn:hover {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent)
+        }
+
+        .action-btn.quiz-active {
+            background: var(--success);
+            border-color: var(--success);
+            color: #fff
+        }
+
+        .list-wrap {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0
+        }
+
+        .list-wrap::-webkit-scrollbar {
+            width: 6px
+        }
+
+        .list-wrap::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px
+        }
+
+        .country-list {
+            list-style: none;
+            counter-reset: c
+        }
+
+        .country-item {
+            counter-increment: c;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px
+        }
+
+        .country-item::before {
+            content: counter(c);
+            min-width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: all 0.2s
+        }
+
+        .country-item:hover {
+            background: var(--bg-tertiary)
+        }
+
+        .country-item:hover::before,
+        .country-item.active::before {
+            background: var(--accent);
+            color: #fff
+        }
+
+        .country-item.active {
+            background: linear-gradient(90deg, var(--accent-glow), transparent)
+        }
+
+        .country-item.studied .country-name::after {
+            content: '✓';
+            margin-left: 8px;
+            color: var(--success);
+            font-size: 0.8rem
+        }
+
+        .country-info {
+            flex: 1;
+            min-width: 0
+        }
+
+        .country-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: color 0.2s
+        }
+
+        .country-item:hover .country-name,
+        .country-item.active .country-name {
+            color: var(--accent-light)
+        }
+
+        .country-capital {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s
+        }
+
+        .country-item.active .country-capital,
+        .country-item:hover .country-capital {
+            opacity: 1;
+            max-height: 30px;
+            margin-top: 4px
+        }
+
+        .country-capital::before {
+            content: '★ ';
+            color: var(--accent)
+        }
+
+        .footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-tertiary)
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between
+        }
+
+        .stat {
+            text-align: center
+        }
+
+        .stat-val {
+            font-weight: 700;
+            color: var(--accent-light);
+            font-size: 1.1rem
+        }
+
+        .stat-lbl {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            margin-top: 2px
+        }
+
+        .timer {
+            margin-top: 12px;
+            padding: 10px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary)
+        }
+
+        .timer span {
+            font-weight: 700;
+            color: var(--accent-light);
+            font-family: monospace
+        }
+
+        .map-wrap {
+            flex: 1;
+            position: relative;
+            background: var(--bg-primary)
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            background: #0d1117
+        }
+
+        .leaflet-container {
+            background: #0d1117 !important;
+            font-family: 'Inter', sans-serif !important
+        }
+
+        .leaflet-control-zoom {
+            border: none !important;
+            box-shadow: var(--shadow) !important
+        }
+
+        .leaflet-control-zoom a {
+            background: var(--bg-secondary) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid var(--border) !important;
+            width: 36px !important;
+            height: 36px !important;
+            line-height: 36px !important
+        }
+
+        .leaflet-control-zoom a:hover {
+            background: var(--bg-tertiary) !important;
+            color: var(--accent-light) !important
+        }
+
+        .leaflet-control-zoom-in {
+            border-radius: 8px 8px 0 0 !important
+        }
+
+        .leaflet-control-zoom-out {
+            border-radius: 0 0 8px 8px !important
+        }
+
+        .leaflet-popup-content-wrapper {
+            background: var(--bg-secondary) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: var(--radius) !important;
+            box-shadow: var(--shadow) !important
+        }
+
+        .leaflet-popup-content {
+            margin: 12px 16px !important;
+            color: var(--text-primary) !important;
+            text-align: center
+        }
+
+        .leaflet-popup-tip {
+            background: var(--bg-secondary) !important
+        }
+
+        .popup-country {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px
+        }
+
+        .popup-capital {
+            font-size: 1rem;
+            font-weight: 600
+        }
+
+        .quiz-prompt {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 24px;
+            z-index: 1001;
+            text-align: center;
+            box-shadow: var(--shadow);
+            display: none
+        }
+
+        .quiz-prompt.show {
+            display: block;
+            animation: fadeIn 0.3s
+        }
+
+        .quiz-prompt h3 {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 8px
+        }
+
+        .quiz-prompt p {
+            font-size: 1.2rem;
+            font-weight: 700
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px 24px;
+            z-index: 9999;
+            font-size: 0.85rem;
+            opacity: 0;
+            transition: opacity 0.3s
+        }
+
+        .toast.show {
+            opacity: 1
+        }
+
+        .toast.success {
+            border-color: var(--success)
+        }
+
+        .help-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center
+        }
+
+        .help-modal.show {
+            display: flex
+        }
+
+        .help-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            max-width: 400px;
+            width: 90%
+        }
+
+        .help-content h2 {
+            margin-bottom: 16px;
+            font-size: 1.1rem
+        }
+
+        .help-content dl {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 8px 16px;
+            font-size: 0.85rem
+        }
+
+        .help-content dt {
+            color: var(--accent-light);
+            font-family: monospace;
+            background: var(--bg-tertiary);
+            padding: 4px 8px;
+            border-radius: 4px
+        }
+
+        .help-content dd {
+            color: var(--text-secondary)
+        }
+
+        .help-close {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer
+        }
+
+        .loading {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s
+        }
+
+        .loading.hide {
+            opacity: 0;
+            pointer-events: none
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-10px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0)
+            }
+        }
+
+        @media(max-width:768px) {
+            .sidebar {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+                height: 55vh;
+                border-right: none;
+                border-top: 1px solid var(--border);
+                border-radius: 20px 20px 0 0;
+                transform: translateY(calc(100% - 60px));
+                transition: transform 0.3s
+            }
+
+            .sidebar.open {
+                transform: translateY(0)
+            }
+
+            .sidebar::before {
+                content: '';
+                position: absolute;
+                top: 8px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 40px;
+                height: 4px;
+                background: var(--text-muted);
+                border-radius: 2px
+            }
+
+            .header {
+                padding-top: 24px
+            }
+
+            .map-wrap {
+                position: fixed;
+                inset: 0
+            }
+
+            .quiz-prompt {
+                top: auto;
+                bottom: calc(55vh + 20px)
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+    <div class="toast" id="toast"></div>
+    <div class="help-modal" id="helpModal">
+        <div class="help-content">
+            <h2 id="helpTitle">⌨️ Горячие клавиши</h2>
+            <dl>
+                <dt>↑ / ↓</dt>
+                <dd id="hNav">Навигация по списку</dd>
+                <dt>/</dt>
+                <dd id="hSearch">Поиск</dd>
+                <dt>R</dt>
+                <dd id="hRandom">Случайная страна</dd>
+                <dt>Q</dt>
+                <dd id="hQuiz">Режим викторины</dd>
+                <dt>?</dt>
+                <dd id="hHelp">Справка</dd>
+                <dt>Esc</dt>
+                <dd id="hReset">Сброс выбора</dd>
+            </dl>
+            <button class="help-close" id="helpClose">Закрыть</button>
+        </div>
+    </div>
+    <div class="quiz-prompt" id="quizPrompt">
+        <h3 id="quizLabel">Найдите на карте:</h3>
+        <p id="quizCountry"></p>
+    </div>
+    <div class="app">
+        <aside class="sidebar" id="sidebar">
+            <header class="header">
+                <div class="header-top">
+                    <div class="logo">🗺️ <span id="logoText">EuroContour</span></div>
+                    <div class="lang-switch">
+                        <button class="lang-btn active" data-lang="ru">RU</button>
+                        <button class="lang-btn" data-lang="en">EN</button>
+                        <button class="lang-btn" data-lang="kz">ҚЗ</button>
+                    </div>
+                </div>
+                <p class="subtitle" id="subtitleText">Интерактивная учебная карта Европы</p>
+            </header>
+            <div class="controls">
+                <input type="text" class="search" id="search" placeholder="Поиск стран..." autocomplete="off">
+                <div class="action-btns">
+                    <button class="action-btn" id="randomBtn" title="Случайная страна">🎲 <span
+                            id="randomText">Случайная</span></button>
+                    <button class="action-btn" id="quizBtn" title="Режим викторины">🎯 <span
+                            id="quizText">Викторина</span></button>
+                    <button class="action-btn" id="resetBtn" title="Сбросить прогресс">🔄</button>
+                </div>
+            </div>
+            <div class="list-wrap">
+                <ol class="country-list" id="countryList"></ol>
+            </div>
+            <footer class="footer">
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-val" id="totalStat">0</div>
+                        <div class="stat-lbl" id="totalLabel">Страны</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-val" id="studiedStat">0</div>
+                        <div class="stat-lbl" id="studiedLabel">Изучено</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-val" id="progressStat">0%</div>
+                        <div class="stat-lbl" id="progressLabel">Прогресс</div>
+                    </div>
+                </div>
+                <div class="timer" id="timerBox"><span id="timerLabel">Время:</span> <span id="timer">00:00</span></div>
+            </footer>
+        </aside>
+        <main class="map-wrap">
+            <div id="map"></div>
+        </main>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script>
+        const TRANSLATIONS = {
+            ru: { title: "Контурная карта Европы", subtitle: "Интерактивная учебная карта Европы", search: "Поиск стран...", random: "Случайная", quiz: "Викторина", total: "Страны", studied: "Изучено", progress: "Прогресс", time: "Время", find: "Найдите на карте:", correct: "Правильно!", wrong: "Неверно. Попробуйте ещё!", reset: "Прогресс сброшен", help: "Горячие клавиши", close: "Закрыть", nav: "Навигация по списку", searchKey: "Поиск", randomKey: "Случайная страна", quizKey: "Режим викторины", helpKey: "Справка", resetKey: "Сброс выбора", capital: "Столица" },
+            en: { title: "Europe Contour Map", subtitle: "Interactive Study Map of Europe", search: "Search countries...", random: "Random", quiz: "Quiz", total: "Countries", studied: "Studied", progress: "Progress", time: "Time", find: "Find on the map:", correct: "Correct!", wrong: "Wrong. Try again!", reset: "Progress reset", help: "Keyboard Shortcuts", close: "Close", nav: "Navigate list", searchKey: "Search", randomKey: "Random country", quizKey: "Quiz mode", helpKey: "Help", resetKey: "Reset selection", capital: "Capital" },
+            kz: { title: "Еуропа контурлық картасы", subtitle: "Еуропаның интерактивті оқу картасы", search: "Елдерді іздеу...", random: "Кездейсоқ", quiz: "Викторина", total: "Елдер", studied: "Зерттелген", progress: "Үлгерім", time: "Уақыт", find: "Картадан табыңыз:", correct: "Дұрыс!", wrong: "Қате. Қайталап көріңіз!", reset: "Үлгерім қалпына келтірілді", help: "Пернелер", close: "Жабу", nav: "Тізімді шарлау", searchKey: "Іздеу", randomKey: "Кездейсоқ ел", quizKey: "Викторина режимі", helpKey: "Анықтама", resetKey: "Таңдауды қалпына келтіру", capital: "Астана" }
+        };
+        const COUNTRIES = {
+            "Albania": { en: "Albania", ru: "Албания", kz: "Албания", cap: { en: "Tirana", ru: "Тирана", kz: "Тирана" }, coords: [41.33, 19.82] },
+            "Andorra": { en: "Andorra", ru: "Андорра", kz: "Андорра", cap: { en: "Andorra la Vella", ru: "Андорра-ла-Велья", kz: "Андорра-ла-Велья" }, coords: [42.51, 1.52] },
+            "Armenia": { en: "Armenia", ru: "Армения", kz: "Армения", cap: { en: "Yerevan", ru: "Ереван", kz: "Ереван" }, coords: [40.18, 44.5] },
+            "Austria": { en: "Austria", ru: "Австрия", kz: "Австрия", cap: { en: "Vienna", ru: "Вена", kz: "Вена" }, coords: [48.21, 16.37] },
+            "Azerbaijan": { en: "Azerbaijan", ru: "Азербайджан", kz: "Әзірбайжан", cap: { en: "Baku", ru: "Баку", kz: "Баку" }, coords: [40.41, 49.87] },
+            "Belarus": { en: "Belarus", ru: "Беларусь", kz: "Беларусь", cap: { en: "Minsk", ru: "Минск", kz: "Минск" }, coords: [53.9, 27.56] },
+            "Belgium": { en: "Belgium", ru: "Бельгия", kz: "Бельгия", cap: { en: "Brussels", ru: "Брюссель", kz: "Брюссель" }, coords: [50.85, 4.35] },
+            "Bosnia and Herzegovina": { en: "Bosnia and Herzegovina", ru: "Босния и Герцеговина", kz: "Босния және Герцеговина", cap: { en: "Sarajevo", ru: "Сараево", kz: "Сараево" }, coords: [43.86, 18.41] },
+            "Bulgaria": { en: "Bulgaria", ru: "Болгария", kz: "Болгария", cap: { en: "Sofia", ru: "София", kz: "София" }, coords: [42.7, 23.32] },
+            "Croatia": { en: "Croatia", ru: "Хорватия", kz: "Хорватия", cap: { en: "Zagreb", ru: "Загреб", kz: "Загреб" }, coords: [45.82, 15.98] },
+            "Cyprus": { en: "Cyprus", ru: "Кипр", kz: "Кипр", cap: { en: "Nicosia", ru: "Никосия", kz: "Никосия" }, coords: [35.19, 33.38] },
+            "Czech Republic": { en: "Czech Republic", ru: "Чехия", kz: "Чехия", cap: { en: "Prague", ru: "Прага", kz: "Прага" }, coords: [50.08, 14.44] },
+            "Denmark": { en: "Denmark", ru: "Дания", kz: "Дания", cap: { en: "Copenhagen", ru: "Копенгаген", kz: "Копенгаген" }, coords: [55.68, 12.57] },
+            "Estonia": { en: "Estonia", ru: "Эстония", kz: "Эстония", cap: { en: "Tallinn", ru: "Таллин", kz: "Таллин" }, coords: [59.44, 24.75] },
+            "Finland": { en: "Finland", ru: "Финляндия", kz: "Финляндия", cap: { en: "Helsinki", ru: "Хельсинки", kz: "Хельсинки" }, coords: [60.17, 24.94] },
+            "France": { en: "France", ru: "Франция", kz: "Франция", cap: { en: "Paris", ru: "Париж", kz: "Париж" }, coords: [48.86, 2.35] },
+            "Georgia": { en: "Georgia", ru: "Грузия", kz: "Грузия", cap: { en: "Tbilisi", ru: "Тбилиси", kz: "Тбилиси" }, coords: [41.72, 44.83] },
+            "Germany": { en: "Germany", ru: "Германия", kz: "Германия", cap: { en: "Berlin", ru: "Берлин", kz: "Берлин" }, coords: [52.52, 13.41] },
+            "Greece": { en: "Greece", ru: "Греция", kz: "Грекия", cap: { en: "Athens", ru: "Афины", kz: "Афины" }, coords: [37.98, 23.73] },
+            "Hungary": { en: "Hungary", ru: "Венгрия", kz: "Венгрия", cap: { en: "Budapest", ru: "Будапешт", kz: "Будапешт" }, coords: [47.5, 19.04] },
+            "Iceland": { en: "Iceland", ru: "Исландия", kz: "Исландия", cap: { en: "Reykjavik", ru: "Рейкьявик", kz: "Рейкьявик" }, coords: [64.15, -21.94] },
+            "Ireland": { en: "Ireland", ru: "Ирландия", kz: "Ирландия", cap: { en: "Dublin", ru: "Дублин", kz: "Дублин" }, coords: [53.35, -6.26] },
+            "Italy": { en: "Italy", ru: "Италия", kz: "Италия", cap: { en: "Rome", ru: "Рим", kz: "Рим" }, coords: [41.9, 12.5] },
+            "Kazakhstan": { en: "Kazakhstan", ru: "Казахстан", kz: "Қазақстан", cap: { en: "Astana", ru: "Астана", kz: "Астана" }, coords: [51.16, 71.47] },
+            "Kosovo": { en: "Kosovo", ru: "Косово", kz: "Косово", cap: { en: "Pristina", ru: "Приштина", kz: "Приштина" }, coords: [42.66, 21.17] },
+            "Latvia": { en: "Latvia", ru: "Латвия", kz: "Латвия", cap: { en: "Riga", ru: "Рига", kz: "Рига" }, coords: [56.95, 24.11] },
+            "Liechtenstein": { en: "Liechtenstein", ru: "Лихтенштейн", kz: "Лихтенштейн", cap: { en: "Vaduz", ru: "Вадуц", kz: "Вадуц" }, coords: [47.14, 9.52] },
+            "Lithuania": { en: "Lithuania", ru: "Литва", kz: "Литва", cap: { en: "Vilnius", ru: "Вильнюс", kz: "Вильнюс" }, coords: [54.69, 25.28] },
+            "Luxembourg": { en: "Luxembourg", ru: "Люксембург", kz: "Люксембург", cap: { en: "Luxembourg City", ru: "Люксембург", kz: "Люксембург" }, coords: [49.61, 6.13] },
+            "Malta": { en: "Malta", ru: "Мальта", kz: "Мальта", cap: { en: "Valletta", ru: "Валлетта", kz: "Валлетта" }, coords: [35.9, 14.51] },
+            "Moldova": { en: "Moldova", ru: "Молдова", kz: "Молдова", cap: { en: "Chișinău", ru: "Кишинёв", kz: "Кишинев" }, coords: [47.01, 28.86] },
+            "Monaco": { en: "Monaco", ru: "Монако", kz: "Монако", cap: { en: "Monaco", ru: "Монако", kz: "Монако" }, coords: [43.74, 7.42] },
+            "Montenegro": { en: "Montenegro", ru: "Черногория", kz: "Черногория", cap: { en: "Podgorica", ru: "Подгорица", kz: "Подгорица" }, coords: [42.43, 19.26] },
+            "Netherlands": { en: "Netherlands", ru: "Нидерланды", kz: "Нидерланды", cap: { en: "Amsterdam", ru: "Амстердам", kz: "Амстердам" }, coords: [52.37, 4.9] },
+            "North Macedonia": { en: "North Macedonia", ru: "Северная Македония", kz: "Солтүстік Македония", cap: { en: "Skopje", ru: "Скопье", kz: "Скопье" }, coords: [42, 21.43] },
+            "Norway": { en: "Norway", ru: "Норвегия", kz: "Норвегия", cap: { en: "Oslo", ru: "Осло", kz: "Осло" }, coords: [59.91, 10.75] },
+            "Poland": { en: "Poland", ru: "Польша", kz: "Польша", cap: { en: "Warsaw", ru: "Варшава", kz: "Варшава" }, coords: [52.23, 21.01] },
+            "Portugal": { en: "Portugal", ru: "Португалия", kz: "Португалия", cap: { en: "Lisbon", ru: "Лиссабон", kz: "Лиссабон" }, coords: [38.72, -9.14] },
+            "Romania": { en: "Romania", ru: "Румыния", kz: "Румыния", cap: { en: "Bucharest", ru: "Бухарест", kz: "Бухарест" }, coords: [44.43, 26.1] },
+            "Russia": { en: "Russia", ru: "Россия", kz: "Ресей", cap: { en: "Moscow", ru: "Москва", kz: "Мәскеу" }, coords: [55.76, 37.62] },
+            "San Marino": { en: "San Marino", ru: "Сан-Марино", kz: "Сан-Марино", cap: { en: "San Marino", ru: "Сан-Марино", kz: "Сан-Марино" }, coords: [43.94, 12.46] },
+            "Serbia": { en: "Serbia", ru: "Сербия", kz: "Сербия", cap: { en: "Belgrade", ru: "Белград", kz: "Белград" }, coords: [44.79, 20.45] },
+            "Slovakia": { en: "Slovakia", ru: "Словакия", kz: "Словакия", cap: { en: "Bratislava", ru: "Братислава", kz: "Братислава" }, coords: [48.15, 17.11] },
+            "Slovenia": { en: "Slovenia", ru: "Словения", kz: "Словения", cap: { en: "Ljubljana", ru: "Любляна", kz: "Любляна" }, coords: [46.06, 14.51] },
+            "Spain": { en: "Spain", ru: "Испания", kz: "Испания", cap: { en: "Madrid", ru: "Мадрид", kz: "Мадрид" }, coords: [40.42, -3.7] },
+            "Sweden": { en: "Sweden", ru: "Швеция", kz: "Швеция", cap: { en: "Stockholm", ru: "Стокгольм", kz: "Стокгольм" }, coords: [59.33, 18.07] },
+            "Switzerland": { en: "Switzerland", ru: "Швейцария", kz: "Швейцария", cap: { en: "Bern", ru: "Берн", kz: "Берн" }, coords: [46.95, 7.45] },
+            "Turkey": { en: "Turkey", ru: "Турция", kz: "Түркия", cap: { en: "Ankara", ru: "Анкара", kz: "Анкара" }, coords: [39.93, 32.86] },
+            "Ukraine": { en: "Ukraine", ru: "Украина", kz: "Украина", cap: { en: "Kyiv", ru: "Киев", kz: "Киев" }, coords: [50.45, 30.52] },
+            "United Kingdom": { en: "United Kingdom", ru: "Великобритания", kz: "Ұлыбритания", cap: { en: "London", ru: "Лондон", kz: "Лондон" }, coords: [51.51, -0.13] },
+            "Faroe Islands": { en: "Faroe Islands", ru: "Фарерские острова", kz: "Фарер аралдары", cap: { en: "Tórshavn", ru: "Торсхавн", kz: "Торсхавн" }, coords: [62.01, -6.77] },
+            "Israel": { en: "Israel", ru: "Израиль", kz: "Израиль", cap: { en: "Jerusalem", ru: "Иерусалим", kz: "Иерусалим" }, coords: [31.77, 35.23] },
+            "Holy See (Vatican City)": { en: "Vatican City", ru: "Ватикан", kz: "Ватикан", cap: { en: "Vatican City", ru: "Ватикан", kz: "Ватикан" }, coords: [41.9, 12.45] }
+        };
+        let map, geoLayer, layers = {}, active = null, studied = new Set(), marker = null, countries = [], lang = 'ru', quizMode = false, quizTarget = null, timerStart = Date.now(), timerInterval;
+        const GEOJSON_URL = 'https://raw.githubusercontent.com/leakyMirror/map-of-europe/master/GeoJSON/europe.geojson';
+        const $ = id => document.getElementById(id);
+        const t = key => TRANSLATIONS[lang][key] || key;
+        const getName = key => COUNTRIES[key] ? COUNTRIES[key][lang] : key;
+        const getCap = key => COUNTRIES[key]?.cap ? COUNTRIES[key].cap[lang] : '-';
+        const getCoords = key => COUNTRIES[key]?.coords || null;
+
+        function updateUI() {
+            document.documentElement.lang = lang;
+            $('subtitleText').textContent = t('subtitle');
+            $('search').placeholder = t('search');
+            $('randomText').textContent = t('random');
+            $('quizText').textContent = t('quiz');
+            $('totalLabel').textContent = t('total');
+            $('studiedLabel').textContent = t('studied');
+            $('progressLabel').textContent = t('progress');
+            $('timerLabel').textContent = t('time') + ':';
+            $('quizLabel').textContent = t('find');
+            $('helpTitle').textContent = '⌨️ ' + t('help');
+            $('helpClose').textContent = t('close');
+            $('hNav').textContent = t('nav');
+            $('hSearch').textContent = t('searchKey');
+            $('hRandom').textContent = t('randomKey');
+            $('hQuiz').textContent = t('quizKey');
+            $('hHelp').textContent = t('helpKey');
+            $('hReset').textContent = t('resetKey');
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+            buildList();
+        }
+        function setLang(l) { lang = l; localStorage.setItem('euroLang', l); updateUI(); }
+        function toast(msg, type = '') { const el = $('toast'); el.textContent = msg; el.className = 'toast show' + (type ? ' ' + type : ''); setTimeout(() => el.classList.remove('show'), 2000); }
+        function updateStats() {
+            $('totalStat').textContent = countries.length;
+            $('studiedStat').textContent = studied.size;
+            $('progressStat').textContent = countries.length ? Math.round(studied.size / countries.length * 100) + '%' : '0%';
+        }
+        function updateTimer() { const s = Math.floor((Date.now() - timerStart) / 1000); const m = Math.floor(s / 60); $('timer').textContent = String(m).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+        function buildList() {
+            const list = $('countryList'); list.innerHTML = '';
+            const sorted = [...countries].sort((a, b) => getName(a.properties.NAME).localeCompare(getName(b.properties.NAME), lang));
+            sorted.forEach(f => {
+                const key = f.properties.NAME, name = getName(key), cap = getCap(key);
+                const li = document.createElement('li');
+                li.className = 'country-item' + (studied.has(key) ? ' studied' : '');
+                li.dataset.key = key;
+                li.innerHTML = `<div class="country-info"><div class="country-name">${name}</div><div class="country-capital">${cap}</div></div>`;
+                li.addEventListener('click', () => select(key));
+                li.addEventListener('mouseenter', () => { if (layers[key] && active !== key) { layers[key].setStyle(hoverStyle()); layers[key].bringToFront(); } });
+                li.addEventListener('mouseleave', () => { if (layers[key] && active !== key) layers[key].setStyle(defaultStyle()); });
+                list.appendChild(li);
+            });
+        }
+        function defaultStyle() { return { fillColor: '#1e1e2e', weight: 1.5, opacity: 1, color: '#3a3a4a', fillOpacity: 0.9 }; }
+        function hoverStyle() { return { fillColor: '#2a2a3e', weight: 2, color: '#6366f1', fillOpacity: 0.95 }; }
+        function activeStyle() { return { fillColor: '#4a4a6a', weight: 2.5, color: '#818cf8', fillOpacity: 1 }; }
+        function select(key) {
+            if (quizMode) {
+                if (key === quizTarget) { toast(t('correct'), 'success'); studied.add(key); nextQuiz(); }
+                else { toast(t('wrong')); return; }
+            }
+            if (active && layers[active]) layers[active].setStyle(defaultStyle());
+            document.querySelectorAll('.country-item.active').forEach(el => el.classList.remove('active'));
+            if (marker) { map.removeLayer(marker); marker = null; }
+            active = key;
+            const layer = layers[key];
+            if (layer) {
+                layer.setStyle(activeStyle()); layer.bringToFront();
+                map.flyToBounds(layer.getBounds(), { padding: [50, 50], maxZoom: 7, duration: 0.6 });
+                const coords = getCoords(key);
+                if (coords) {
+                    marker = L.circleMarker(coords, { radius: 8, fillColor: '#6366f1', color: '#fff', weight: 2, fillOpacity: 0.9 }).addTo(map);
+                    marker.bindPopup(`<div class="popup-country">${getName(key)}</div><div class="popup-capital">★ ${getCap(key)}</div>`).openPopup();
+                }
+            }
+            const li = document.querySelector(`.country-item[data-key="${key}"]`);
+            if (li) { li.classList.add('active'); li.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+            studied.add(key);
+            document.querySelectorAll(`.country-item[data-key="${key}"]`).forEach(el => el.classList.add('studied'));
+            localStorage.setItem('euroStudied', JSON.stringify([...studied]));
+            updateStats();
+        }
+        function randomCountry() {
+            const unstudied = countries.filter(c => !studied.has(c.properties.NAME));
+            const pool = unstudied.length ? unstudied : countries;
+            const pick = pool[Math.floor(Math.random() * pool.length)];
+            select(pick.properties.NAME);
+        }
+        function toggleQuiz() {
+            quizMode = !quizMode;
+            $('quizBtn').classList.toggle('quiz-active', quizMode);
+            if (quizMode) nextQuiz(); else $('quizPrompt').classList.remove('show');
+        }
+        function nextQuiz() {
+            const unstudied = countries.filter(c => !studied.has(c.properties.NAME));
+            if (!unstudied.length) { quizMode = false; $('quizBtn').classList.remove('quiz-active'); $('quizPrompt').classList.remove('show'); toast(t('correct')); return; }
+            quizTarget = unstudied[Math.floor(Math.random() * unstudied.length)].properties.NAME;
+            $('quizCountry').textContent = getName(quizTarget);
+            $('quizPrompt').classList.add('show');
+        }
+        function resetProgress() {
+            if (!confirm('Reset progress?')) return;
+            studied.clear(); localStorage.removeItem('euroStudied');
+            document.querySelectorAll('.country-item.studied').forEach(el => el.classList.remove('studied'));
+            updateStats(); toast(t('reset'));
+        }
+        async function loadGeo() {
+            try {
+                const res = await fetch(GEOJSON_URL);
+                const data = await res.json();
+                countries = data.features.filter(f => f.properties.NAME && !['French Guiana', 'Reunion', 'Martinique', 'Guadeloupe'].includes(f.properties.NAME));
+                geoLayer = L.geoJSON(countries, {
+                    style: defaultStyle, onEachFeature: (f, l) => {
+                        const key = f.properties.NAME; layers[key] = l;
+                        l.on({ mouseover: () => { if (active !== key) { l.setStyle(hoverStyle()); l.bringToFront(); } }, mouseout: () => { if (active !== key) l.setStyle(defaultStyle()); }, click: () => select(key) });
+                    }
+                }).addTo(map);
+                const saved = localStorage.getItem('euroStudied');
+                if (saved) try { studied = new Set(JSON.parse(saved)); } catch { }
+                updateUI(); updateStats();
+                $('loading').classList.add('hide');
+            } catch (e) { console.error(e); alert('Failed to load map data'); }
+        }
+        function initMap() {
+            map = L.map('map', { center: [54, 15], zoom: 4, minZoom: 3, maxZoom: 10, maxBounds: L.latLngBounds([34, -25], [72, 45]).pad(0.5), maxBoundsViscosity: 0.8 });
+            map.zoomControl.setPosition('bottomright');
+            loadGeo();
+        }
+        function initEvents() {
+            document.querySelectorAll('.lang-btn').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
+            $('randomBtn').addEventListener('click', randomCountry);
+            $('quizBtn').addEventListener('click', toggleQuiz);
+            $('resetBtn').addEventListener('click', resetProgress);
+            $('helpClose').addEventListener('click', () => $('helpModal').classList.remove('show'));
+            let debounce;
+            $('search').addEventListener('input', e => {
+                clearTimeout(debounce); debounce = setTimeout(() => {
+                    const q = e.target.value.toLowerCase();
+                    document.querySelectorAll('.country-item').forEach(el => {
+                        const key = el.dataset.key, name = getName(key).toLowerCase(), cap = getCap(key).toLowerCase();
+                        el.style.display = (name.includes(q) || cap.includes(q)) ? 'flex' : 'none';
+                    });
+                }, 150);
+            });
+            document.addEventListener('keydown', e => {
+                if (e.target.tagName === 'INPUT') return;
+                const items = [...document.querySelectorAll('.country-item')].filter(el => el.style.display !== 'none');
+                const idx = items.findIndex(el => el.dataset.key === active);
+                if (e.key === 'ArrowDown' || e.key === 'j') { e.preventDefault(); const next = idx < items.length - 1 ? idx + 1 : 0; select(items[next].dataset.key); }
+                else if (e.key === 'ArrowUp' || e.key === 'k') { e.preventDefault(); const prev = idx > 0 ? idx - 1 : items.length - 1; select(items[prev].dataset.key); }
+                else if (e.key === '/') { e.preventDefault(); $('search').focus(); }
+                else if (e.key === 'r' || e.key === 'R') randomCountry();
+                else if (e.key === 'q' || e.key === 'Q') toggleQuiz();
+                else if (e.key === '?') $('helpModal').classList.add('show');
+                else if (e.key === 'Escape') { if (active && layers[active]) layers[active].setStyle(defaultStyle()); if (marker) { map.removeLayer(marker); marker = null; } active = null; document.querySelectorAll('.country-item.active').forEach(el => el.classList.remove('active')); map.flyTo([54, 15], 4, { duration: 0.5 }); $('helpModal').classList.remove('show'); }
+            });
+            const sidebar = $('sidebar');
+            let touchY = 0;
+            sidebar.addEventListener('touchstart', e => { touchY = e.touches[0].clientY; });
+            sidebar.addEventListener('touchmove', e => { const dy = touchY - e.touches[0].clientY; if (Math.abs(dy) > 30) { sidebar.classList.toggle('open', dy > 0); touchY = e.touches[0].clientY; } });
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            lang = localStorage.getItem('euroLang') || 'ru';
+            initMap(); initEvents();
+        });
+    </script>
+</body>
+
+</html>
