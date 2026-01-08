@@ -560,21 +560,22 @@
         .mobile-toggle {
             display: none;
             position: fixed;
-            bottom: 24px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent), var(--accent-light));
-            color: white;
-            border: none;
-            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.6);
+            top: 16px;
+            left: 16px;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             z-index: 2002;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             cursor: pointer;
             align-items: center;
             justify-content: center;
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s;
         }
 
         .mobile-toggle:active {
@@ -582,7 +583,9 @@
         }
 
         .mobile-toggle.open {
-            transform: rotate(90deg);
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
         }
 
         .mobile-overlay {
@@ -618,13 +621,13 @@
                 right: 0;
                 width: 100%;
                 z-index: 2001;
-                height: 60vh;
+                height: 85vh;
                 border-right: none;
                 border-top: 1px solid var(--border);
-                border-radius: 24px 24px 0 0;
-                transform: translateY(calc(100% - 70px));
+                border-radius: 20px 20px 0 0;
+                transform: translateY(calc(100% - 56px));
                 transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-                box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+                box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
             }
 
             .sidebar.open {
@@ -634,18 +637,113 @@
             .sidebar::before {
                 content: '';
                 position: absolute;
-                top: 10px;
+                top: 8px;
                 left: 50%;
                 transform: translateX(-50%);
-                width: 48px;
-                height: 5px;
+                width: 40px;
+                height: 4px;
                 background: var(--text-muted);
-                border-radius: 3px;
-                opacity: 0.6;
+                border-radius: 2px;
+                opacity: 0.5;
             }
 
+            /* Compact header on mobile */
             .header {
-                padding-top: 28px;
+                padding: 20px 16px 12px;
+                border-bottom: none;
+            }
+
+            .header-top {
+                margin-bottom: 0;
+            }
+
+            .logo {
+                font-size: 1rem;
+            }
+
+            .subtitle {
+                display: none;
+            }
+
+            .lang-btn {
+                padding: 6px 10px;
+                font-size: 0.7rem;
+                min-width: 36px;
+            }
+
+            /* Compact controls */
+            .controls {
+                padding: 8px 16px 12px;
+                gap: 8px;
+            }
+
+            .search {
+                padding: 10px 14px;
+                font-size: 0.9rem;
+                border-radius: 10px;
+            }
+
+            .action-btns {
+                gap: 6px;
+            }
+
+            .action-btn {
+                padding: 8px 10px;
+                min-height: 40px;
+                font-size: 0.75rem;
+                border-radius: 8px;
+            }
+
+            .action-btn span {
+                display: none;
+            }
+
+            /* Maximize list visibility */
+            .list-wrap {
+                flex: 1;
+                padding: 4px 0;
+            }
+
+            .country-item {
+                padding: 12px 16px;
+                min-height: 48px;
+                gap: 10px;
+            }
+
+            .country-item::before {
+                min-width: 22px;
+                height: 22px;
+                font-size: 0.65rem;
+            }
+
+            .country-name {
+                font-size: 0.9rem;
+            }
+
+            .country-capital {
+                font-size: 0.7rem;
+            }
+
+            /* Compact footer */
+            .footer {
+                padding: 10px 16px;
+                border-top: 1px solid var(--border);
+            }
+
+            .stats {
+                gap: 16px;
+            }
+
+            .stat-val {
+                font-size: 1rem;
+            }
+
+            .stat-lbl {
+                font-size: 0.65rem;
+            }
+
+            .timer {
+                display: none;
             }
 
             .map-wrap {
@@ -654,51 +752,30 @@
             }
 
             .quiz-prompt {
-                top: 20px;
+                top: 16px;
                 bottom: auto;
-                left: 20px;
-                right: 20px;
+                left: 16px;
+                right: 16px;
                 transform: none;
                 width: auto;
-                max-width: calc(100% - 40px);
+                max-width: calc(100% - 32px);
+                padding: 12px 16px;
             }
 
-            .country-item {
-                padding: 16px 20px;
-                min-height: 56px;
+            .quiz-prompt h3 {
+                font-size: 0.7rem;
+                margin-bottom: 4px;
             }
 
-            .action-btn {
-                padding: 14px 12px;
-                min-height: 48px;
-                font-size: 0.8rem;
-            }
-
-            .lang-btn {
-                padding: 10px 14px;
-                font-size: 0.8rem;
-                min-width: 44px;
-            }
-
-            .search {
-                padding: 16px;
+            .quiz-prompt p {
                 font-size: 1rem;
             }
 
             .leaflet-control-zoom a {
-                width: 44px !important;
-                height: 44px !important;
-                line-height: 44px !important;
-                font-size: 1.2rem !important;
-            }
-
-            .footer {
-                padding: 12px 20px;
-            }
-
-            .timer {
-                padding: 8px;
-                margin-top: 8px;
+                width: 40px !important;
+                height: 40px !important;
+                line-height: 40px !important;
+                font-size: 1.1rem !important;
             }
         }
 
