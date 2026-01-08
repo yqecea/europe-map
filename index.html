@@ -562,28 +562,53 @@
             position: fixed;
             bottom: 24px;
             right: 20px;
-            width: 56px;
-            height: 56px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            background: var(--accent);
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
             color: white;
             border: none;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.5);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.6);
             z-index: 2002;
             font-size: 1.5rem;
             cursor: pointer;
             align-items: center;
             justify-content: center;
-            transition: transform 0.2s;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
         }
 
         .mobile-toggle:active {
-            transform: scale(0.95);
+            transform: scale(0.9);
+        }
+
+        .mobile-toggle.open {
+            transform: rotate(90deg);
+        }
+
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .mobile-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         @media(max-width:768px) {
             .mobile-toggle {
                 display: flex;
+            }
+
+            .mobile-overlay {
+                display: block;
             }
 
             .sidebar {
@@ -593,43 +618,104 @@
                 right: 0;
                 width: 100%;
                 z-index: 2001;
-                height: 55vh;
+                height: 60vh;
                 border-right: none;
                 border-top: 1px solid var(--border);
-                border-radius: 20px 20px 0 0;
-                transform: translateY(calc(100% - 60px));
-                transition: transform 0.3s
+                border-radius: 24px 24px 0 0;
+                transform: translateY(calc(100% - 70px));
+                transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+                box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
             }
 
             .sidebar.open {
-                transform: translateY(0)
+                transform: translateY(0);
             }
 
             .sidebar::before {
                 content: '';
                 position: absolute;
-                top: 8px;
+                top: 10px;
                 left: 50%;
                 transform: translateX(-50%);
-                width: 40px;
-                height: 4px;
+                width: 48px;
+                height: 5px;
                 background: var(--text-muted);
-                border-radius: 2px
+                border-radius: 3px;
+                opacity: 0.6;
             }
 
             .header {
-                padding-top: 24px
+                padding-top: 28px;
             }
 
             .map-wrap {
                 position: fixed;
-                inset: 0
+                inset: 0;
             }
 
             .quiz-prompt {
-                top: auto;
-                bottom: calc(55vh + 20px)
+                top: 20px;
+                bottom: auto;
+                left: 20px;
+                right: 20px;
+                transform: none;
+                width: auto;
+                max-width: calc(100% - 40px);
             }
+
+            .country-item {
+                padding: 16px 20px;
+                min-height: 56px;
+            }
+
+            .action-btn {
+                padding: 14px 12px;
+                min-height: 48px;
+                font-size: 0.8rem;
+            }
+
+            .lang-btn {
+                padding: 10px 14px;
+                font-size: 0.8rem;
+                min-width: 44px;
+            }
+
+            .search {
+                padding: 16px;
+                font-size: 1rem;
+            }
+
+            .leaflet-control-zoom a {
+                width: 44px !important;
+                height: 44px !important;
+                line-height: 44px !important;
+                font-size: 1.2rem !important;
+            }
+
+            .footer {
+                padding: 12px 20px;
+            }
+
+            .timer {
+                padding: 8px;
+                margin-top: 8px;
+            }
+        }
+
+        @keyframes pulse-country {
+
+            0%,
+            100% {
+                filter: brightness(1);
+            }
+
+            50% {
+                filter: brightness(1.3);
+            }
+        }
+
+        .country-pulse {
+            animation: pulse-country 0.6s ease-out;
         }
     </style>
 </head>
@@ -664,6 +750,7 @@
         <p id="quizCountry"></p>
     </div>
     <button class="mobile-toggle" id="mobileToggle">☰</button>
+    <div class="mobile-overlay" id="mobileOverlay"></div>
     <div class="app">
         <aside class="sidebar" id="sidebar">
             <header class="header">
@@ -771,7 +858,7 @@
             "Ukraine": { en: "Ukraine", ru: "Украина", kz: "Украина", cap: { en: "Kyiv", ru: "Киев", kz: "Киев" }, coords: [50.45, 30.52] },
             "United Kingdom": { en: "United Kingdom", ru: "Великобритания", kz: "Ұлыбритания", cap: { en: "London", ru: "Лондон", kz: "Лондон" }, coords: [51.51, -0.13] },
             "Faroe Islands": { en: "Faroe Islands", ru: "Фарерские острова", kz: "Фарер аралдары", cap: { en: "Tórshavn", ru: "Торсхавн", kz: "Торсхавн" }, coords: [62.01, -6.77] },
-            "Israel": { en: "Israel", ru: "Израиль", kz: "Израиль", cap: { en: "Jerusalem", ru: "Иерусалим", kz: "Иерусалим" }, coords: [31.77, 35.23] },
+            "Palestine": { en: "Palestine", ru: "Палестина", kz: "Палестина", cap: { en: "Ramallah", ru: "Рамалла", kz: "Рамалла" }, coords: [31.89, 35.20] },
             "Holy See (Vatican City)": { en: "Vatican City", ru: "Ватикан", kz: "Ватикан", cap: { en: "Vatican City", ru: "Ватикан", kz: "Ватикан" }, coords: [41.9, 12.45] }
         };
         let map, geoLayer, layers = {}, active = null, studied = new Set(), marker = null, countries = [], lang = 'ru', quizMode = false, quizTarget = null, timerStart = Date.now(), timerInterval;
@@ -821,7 +908,11 @@
                 li.className = 'country-item' + (studied.has(key) ? ' studied' : '');
                 li.dataset.key = key;
                 li.innerHTML = `<div class="country-info"><div class="country-name">${name}</div><div class="country-capital">${cap}</div></div>`;
-                li.addEventListener('click', () => select(key));
+                li.addEventListener('click', () => {
+                    // Use selectFromList if available (handles mobile auto-close), else fall back to select
+                    if (window.selectFromList) window.selectFromList(key);
+                    else select(key);
+                });
                 li.addEventListener('mouseenter', () => { if (layers[key] && active !== key) { layers[key].setStyle(hoverStyle()); layers[key].bringToFront(); } });
                 li.addEventListener('mouseleave', () => { if (layers[key] && active !== key) layers[key].setStyle(defaultStyle()); });
                 list.appendChild(li);
@@ -850,7 +941,13 @@
                 }
             }
             const li = document.querySelector(`.country-item[data-key="${key}"]`);
-            if (li) { li.classList.add('active'); li.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+            if (li) {
+                li.classList.add('active');
+                li.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Add visual feedback pulse
+                li.classList.add('country-pulse');
+                li.addEventListener('animationend', () => li.classList.remove('country-pulse'), { once: true });
+            }
             studied.add(key);
             document.querySelectorAll(`.country-item[data-key="${key}"]`).forEach(el => el.classList.add('studied'));
             localStorage.setItem('euroStudied', JSON.stringify([...studied]));
@@ -885,6 +982,7 @@
                 const res = await fetch(GEOJSON_URL);
                 const data = await res.json();
                 countries = data.features.filter(f => f.properties.NAME && !['French Guiana', 'Reunion', 'Martinique', 'Guadeloupe'].includes(f.properties.NAME));
+                countries.forEach(f => { if (f.properties.NAME === 'Israel') f.properties.NAME = 'Palestine'; });
                 geoLayer = L.geoJSON(countries, {
                     style: defaultStyle, onEachFeature: (f, l) => {
                         const key = f.properties.NAME; layers[key] = l;
@@ -903,15 +1001,41 @@
             loadGeo();
         }
         function initEvents() {
-            document.querySelectorAll('.lang-btn').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
-            $('randomBtn').addEventListener('click', randomCountry);
-            $('quizBtn').addEventListener('click', toggleQuiz);
-            $('resetBtn').addEventListener('click', resetProgress);
-            $('mobileToggle').addEventListener('click', () => {
+            const isMobile = () => window.innerWidth <= 768;
+            const toggleSidebar = (open) => {
                 const s = $('sidebar');
-                s.classList.toggle('open');
+                const overlay = $('mobileOverlay');
+                const toggle = $('mobileToggle');
+                if (open === undefined) open = !s.classList.contains('open');
+                s.classList.toggle('open', open);
+                overlay.classList.toggle('show', open);
+                toggle.classList.toggle('open', open);
+                toggle.textContent = open ? '✕' : '☰';
+            };
+
+            document.querySelectorAll('.lang-btn').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
+            $('randomBtn').addEventListener('click', () => {
+                randomCountry();
+                if (isMobile()) toggleSidebar(false);
             });
+            $('quizBtn').addEventListener('click', () => {
+                toggleQuiz();
+                if (isMobile() && quizMode) toggleSidebar(false);
+            });
+            $('resetBtn').addEventListener('click', resetProgress);
+            $('mobileToggle').addEventListener('click', () => toggleSidebar());
+            $('mobileOverlay').addEventListener('click', () => toggleSidebar(false));
             $('helpClose').addEventListener('click', () => $('helpModal').classList.remove('show'));
+
+            // Wrap select function to auto-close sidebar on mobile
+            const originalSelect = select;
+            window.selectFromList = (key) => {
+                originalSelect(key);
+                if (isMobile()) {
+                    setTimeout(() => toggleSidebar(false), 300);
+                }
+            };
+
             let debounce;
             $('search').addEventListener('input', e => {
                 clearTimeout(debounce); debounce = setTimeout(() => {
@@ -922,6 +1046,7 @@
                     });
                 }, 150);
             });
+
             document.addEventListener('keydown', e => {
                 if (e.target.tagName === 'INPUT') return;
                 const items = [...document.querySelectorAll('.country-item')].filter(el => el.style.display !== 'none');
@@ -932,12 +1057,46 @@
                 else if (e.key === 'r' || e.key === 'R') randomCountry();
                 else if (e.key === 'q' || e.key === 'Q') toggleQuiz();
                 else if (e.key === '?') $('helpModal').classList.add('show');
-                else if (e.key === 'Escape') { if (active && layers[active]) layers[active].setStyle(defaultStyle()); if (marker) { map.removeLayer(marker); marker = null; } active = null; document.querySelectorAll('.country-item.active').forEach(el => el.classList.remove('active')); map.flyTo([54, 15], 4, { duration: 0.5 }); $('helpModal').classList.remove('show'); }
+                else if (e.key === 'Escape') {
+                    if (active && layers[active]) layers[active].setStyle(defaultStyle());
+                    if (marker) { map.removeLayer(marker); marker = null; }
+                    active = null;
+                    document.querySelectorAll('.country-item.active').forEach(el => el.classList.remove('active'));
+                    map.flyTo([54, 15], 4, { duration: 0.5 });
+                    $('helpModal').classList.remove('show');
+                    if (isMobile()) toggleSidebar(false);
+                }
             });
+
+            // Improved touch gestures with velocity detection
             const sidebar = $('sidebar');
-            let touchY = 0;
-            sidebar.addEventListener('touchstart', e => { touchY = e.touches[0].clientY; });
-            sidebar.addEventListener('touchmove', e => { const dy = touchY - e.touches[0].clientY; if (Math.abs(dy) > 30) { sidebar.classList.toggle('open', dy > 0); touchY = e.touches[0].clientY; } });
+            let touchStartY = 0;
+            let touchStartTime = 0;
+            let isDragging = false;
+
+            sidebar.addEventListener('touchstart', e => {
+                touchStartY = e.touches[0].clientY;
+                touchStartTime = Date.now();
+                isDragging = false;
+            }, { passive: true });
+
+            sidebar.addEventListener('touchmove', e => {
+                const dy = touchStartY - e.touches[0].clientY;
+                if (Math.abs(dy) > 15) isDragging = true;
+            }, { passive: true });
+
+            sidebar.addEventListener('touchend', e => {
+                if (!isDragging) return;
+                const dy = touchStartY - e.changedTouches[0].clientY;
+                const dt = Date.now() - touchStartTime;
+                const velocity = Math.abs(dy) / dt;
+
+                // Use velocity for quick swipes, or distance for slower drags
+                if (velocity > 0.5 || Math.abs(dy) > 50) {
+                    toggleSidebar(dy > 0);
+                }
+            }, { passive: true });
+
             timerInterval = setInterval(updateTimer, 1000);
         }
         document.addEventListener('DOMContentLoaded', () => {
