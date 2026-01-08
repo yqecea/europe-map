@@ -1920,9 +1920,9 @@
                 if (coords) {
                     const labelIcon = L.divIcon({
                         className: 'map-label',
-                        html: `<div class="label-country">${getName(key)}</div><div class="label-capital">${getCap(key)}</div>`,
-                        iconSize: [100, 40],
-                        iconAnchor: [50, 20]
+                        html: `<div class="map-label-content"><div class="label-country">${getName(key)}</div><div class="label-capital">${getCap(key)}</div></div>`,
+                        iconSize: [0, 0],
+                        iconAnchor: [0, 0]
                     });
                     L.marker(coords, { icon: labelIcon, interactive: false }).addTo(labelsLayer);
                 }
@@ -1938,9 +1938,9 @@
                 if (coords) {
                     const labelIcon = L.divIcon({
                         className: 'map-label',
-                        html: `<div class="label-country">${getName(key)}</div><div class="label-capital">${getCap(key)}</div>`,
-                        iconSize: [100, 40],
-                        iconAnchor: [50, 20]
+                        html: `<div class="map-label-content"><div class="label-country">${getName(key)}</div><div class="label-capital">${getCap(key)}</div></div>`,
+                        iconSize: [0, 0],
+                        iconAnchor: [0, 0]
                     });
                     L.marker(coords, { icon: labelIcon, interactive: false }).addTo(labelsLayer);
                 }
