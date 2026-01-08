@@ -910,23 +910,26 @@
                 opacity: 0;
             }
         }
-        }
 
-        .quiz-red {
-            fill: #ef4444 !important;
-            fill-opacity: 0.9 !important;
-        }
-
-        @keyframes quiz-pulse {
+        /* Shake animation for wrong answers */
+        @keyframes shake {
 
             0%,
             100% {
-                fill-opacity: 0.9;
+                transform: translateX(0);
             }
 
-            50% {
-                fill-opacity: 0.5;
+            25% {
+                transform: translateX(-5px);
             }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        .shake-anim {
+            animation: shake 0.3s;
         }
 
         /* Quiz setup modal */
@@ -1530,7 +1533,87 @@
         </main>
     </div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script>
+        class SoundManager {
+            constructor() {
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                this.enabled = true;
+                this.masterGain = this.ctx.createGain();
+                this.masterGain.gain.value = 0.3;
+                this.masterGain.connect(this.ctx.destination);
+            }
+
+            play(type) {
+                if (!this.enabled) return;
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+
+                const now = this.ctx.currentTime;
+
+                switch (type) {
+                    case 'click':
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(800, now);
+                        osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+                        gain.gain.setValueAtTime(0.5, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                        osc.start(now);
+                        osc.stop(now + 0.1);
+                        break;
+                    case 'correct':
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(600, now);
+                        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+                        gain.gain.setValueAtTime(0.3, now);
+                        gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                        osc.start(now);
+                        osc.stop(now + 0.3);
+                        // Chord effect
+                        setTimeout(() => this.playTone(800, 0.2), 50);
+                        break;
+                    case 'wrong':
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(150, now);
+                        osc.frequency.linearRampToValueAtTime(100, now + 0.2);
+                        gain.gain.setValueAtTime(0.3, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                        osc.start(now);
+                        osc.stop(now + 0.3);
+                        break;
+                    case 'win':
+                        this.playTone(523.25, 0.2, 0);       // C5
+                        this.playTone(659.25, 0.2, 0.1);     // E5
+                        this.playTone(783.99, 0.4, 0.2);     // G5
+                        this.playTone(1046.50, 0.8, 0.4);    // C6
+                        break;
+                }
+            }
+
+            playTone(freq, dur, delay = 0) {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+
+                const now = this.ctx.currentTime + delay;
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + dur);
+
+                osc.start(now);
+                osc.stop(now + dur);
+            }
+        }
+
+        const sound = new SoundManager();
+
         const TRANSLATIONS = {
             ru: {
                 title: "Контурная карта Европы", subtitle: "Интерактивная учебная карта Европы", search: "Поиск стран...", random: "Случайная", quiz: "Викторина", total: "Страны", studied: "Изучено", progress: "Прогресс", time: "Время", find: "Найдите на карте:", correct: "Правильно!", wrong: "Неверно. Попробуйте ещё!", reset: "Прогресс сброшен", help: "Горячие клавиши", close: "Закрыть", nav: "Навигация по списку", searchKey: "Поиск", randomKey: "Случайная страна", quizKey: "Режим викторины", helpKey: "Справка", resetKey: "Сброс выбора", capital: "Столица",
@@ -1540,7 +1623,7 @@
                 acad: "Академик", acadDesc: "Никакой пощады. Без подсказок и цветов",
                 zen: "Соискатель", zenDesc: "Вопросов нет, просмотр и изучение карты",
                 qGreen: "С 1-й", qYellow: "С 2-й", qOrange: "С 3-й", qRed: "Сдался",
-                thisIs: "Это"
+                thisIs: "Это", dontKnow: "Не знаю", next: "Дальше"
             },
             en: {
                 title: "Europe Contour Map", subtitle: "Interactive Study Map of Europe", search: "Search countries...", random: "Random", quiz: "Quiz", total: "Countries", studied: "Studied", progress: "Progress", time: "Time", find: "Find on the map:", correct: "Correct!", wrong: "Wrong. Try again!", reset: "Progress reset", help: "Keyboard Shortcuts", close: "Close", nav: "Navigate list", searchKey: "Search", randomKey: "Random country", quizKey: "Quiz mode", helpKey: "Help", resetKey: "Reset selection", capital: "Capital",
@@ -1550,7 +1633,7 @@
                 acad: "Academic", acadDesc: "No mercy. No hints or colors",
                 zen: "Applicant", zenDesc: "No questions, just explore. Zen.",
                 qGreen: "1st try", qYellow: "2nd try", qOrange: "3rd try", qRed: "Gave up",
-                thisIs: "This is"
+                thisIs: "This is", dontKnow: "I don't know", next: "Next"
             },
             kz: {
                 title: "Еуропа контурлық картасы", subtitle: "Еуропаның интерактивті оқу картасы", search: "Елдерді іздеу...", random: "Кездейсоқ", quiz: "Викторина", total: "Елдер", studied: "Зерттелген", progress: "Үлгерім", time: "Уақыт", find: "Картадан табыңыз:", correct: "Дұрыс!", wrong: "Қате. Қайталап көріңіз!", reset: "Үлгерім қалпына келтірілді", help: "Пернелер", close: "Жабу", nav: "Тізімді шарлау", searchKey: "Іздеу", randomKey: "Кездейсоқ ел", quizKey: "Викторина режимі", helpKey: "Анықтама", resetKey: "Таңдауды қалпына келтіру", capital: "Астана",
@@ -1560,7 +1643,7 @@
                 acad: "Академик", acadDesc: "Көмек жоқ. Қатал режим",
                 zen: "Ізденуші", zenDesc: "Сұрақсыз, картаны зерттеу. Дзен.",
                 qGreen: "1-ші", qYellow: "2-ші", qOrange: "3-ші", qRed: "Берілді",
-                thisIs: "Бұл"
+                thisIs: "Бұл", dontKnow: "Білмеймін", next: "Келесі"
             }
         };
         const COUNTRIES = {
@@ -1781,28 +1864,36 @@
                     if (fails === 0) {
                         quizResults[key] = 'green';
                         applyQuizColor(key, 'green');
+                        sound.play('correct');
                     } else if (fails === 1) {
                         quizResults[key] = 'yellow';
                         applyQuizColor(key, 'yellow');
+                        sound.play('correct');
                     } else if (fails === 2) {
                         quizResults[key] = 'orange'; // 3rd try correct
                         applyQuizColor(key, 'orange');
+                        sound.play('correct');
                     } else {
                         // This case only happens if auto-hint triggered but user clicked correct anyway?
                         // Or if logic drifted. Default to Orange/Red.
                         quizResults[key] = 'red';
                         applyQuizColor(key, 'red');
+                        sound.play('wrong'); // Technically correct click, but failed state
                     }
                 }
 
                 quizAnswered.add(key);
 
-                // Score update
-                const correctCount = Object.values(quizResults).filter(r => r !== 'red').length;
-                quizScoreText.textContent = `${t('correct')}: ${correctCount}`;
+                // Update score with percentage
+                const total = quizAnswered.size;
+                const greenCount = Object.values(quizResults).filter(r => r === 'green').length;
+                const yellowCount = Object.values(quizResults).filter(r => r === 'yellow').length;
+                const orangeCount = Object.values(quizResults).filter(r => r === 'orange').length;
+                const accuracy = total > 0 ? Math.round(((greenCount + yellowCount + orangeCount) / total) * 100) : 100;
+                $('quizScoreText').textContent = `🎯 ${accuracy}%`;
 
                 hintShown = false;
-                $('hintBtn').textContent = 'Не знаю';
+                $('hintBtn').textContent = t('dontKnow');
                 $('hintBtn').classList.remove('pass-mode');
 
                 // Small delay before next question
@@ -1816,10 +1907,16 @@
                 if (quizDifficulty === 'beginner') {
                     // Floating label with country name
                     showFloatingFeedback(key, event);
+                    sound.play('wrong');
                 } else if (quizDifficulty === 'professor') {
                     // Generic "Wrong" label without name
                     showFloatingFeedback(null, event, t('wrong'));
+                    sound.play('wrong');
                 }
+
+                // Add shake animation to map/body for tactile feel
+                document.body.classList.add('shake-anim');
+                setTimeout(() => document.body.classList.remove('shake-anim'), 400);
 
                 // Auto-Hint Logic (3+ fails)
                 // Motovskikh: After 3 errors, correct country pulses purple.
@@ -1845,8 +1942,19 @@
             }
 
             if (event && event.clientX) {
-                el.style.left = event.clientX + 'px';
-                el.style.top = event.clientY + 'px';
+                // Position at cursor with boundary detection
+                let left = event.clientX + 15;
+                let top = event.clientY + 15;
+
+                // Keep within viewport (approximate label width/height)
+                const maxX = window.innerWidth - 150;
+                const maxY = window.innerHeight - 50;
+
+                if (left > maxX) left = event.clientX - 150;
+                if (top > maxY) top = event.clientY - 50;
+
+                el.style.left = left + 'px';
+                el.style.top = top + 'px';
             } else {
                 // Fallback to center if no event (e.g. keyboard)
                 el.style.left = '50%';
@@ -1856,26 +1964,6 @@
 
             document.body.appendChild(el);
             setTimeout(() => el.remove(), 1200);
-        } const fails = quizAttempts[quizTarget];
-
-        // Feedback based on difficulty
-        if (quizDifficulty === 'beginner') {
-            // Show "This is [X]" toast/feedback
-            showWrongFeedback(key, `${t('thisIs')} ${getName(key)}`);
-            // Auto hint after 3 fails
-            if (fails >= 3 && !hintShown) {
-                showQuizHint();
-            }
-        } else if (quizDifficulty === 'professor') {
-            // Show "Wrong" but NO name
-            showWrongFeedback(key, t('wrong'));
-        } else if (quizDifficulty === 'academic') {
-            // Silent failure. No popups.
-        }
-
-                // In beginner and professor, we might want to prevent "spam clicking"
-                // But simplified logic: just increment fails.
-            }
         }
 
         function applyQuizColor(key, color) {
@@ -1933,7 +2021,7 @@
                 // Just do nothing visual on map.
             }
 
-            $('hintBtn').textContent = 'Дальше';
+            $('hintBtn').textContent = t('next');
             $('hintBtn').classList.add('pass-mode');
         }
 
@@ -1946,26 +2034,6 @@
 
         function openQuizSetup() {
             $('quizSetup').classList.add('show');
-            // Setup radio button handlers
-            document.querySelectorAll('.radio-option').forEach(opt => {
-                opt.addEventListener('click', (e) => {
-                    // Allow clicking checkbox inside without triggering radio logic if different
-                    if (e.target.type === 'checkbox') return;
-
-                    const group = opt.closest('.radio-group');
-                    if (group) {
-                        // Radio logic
-                        group.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
-                        opt.classList.add('selected');
-                        const rb = opt.querySelector('input[type="radio"]');
-                        if (rb) rb.checked = true;
-                    } else {
-                        // Checkbox logic handled natively or manual toggle class
-                        // toggle class for visual
-                        // opt.classList.toggle('selected');
-                    }
-                });
-            });
         }
 
         function startQuiz() {
@@ -2071,7 +2139,7 @@
                 applyQuizColor(quizTarget, 'red');
 
                 hintShown = false;
-                $('hintBtn').textContent = 'Не знаю';
+                $('hintBtn').textContent = t('dontKnow');
                 $('hintBtn').classList.remove('pass-mode');
 
                 nextQuizQuestion();
@@ -2127,6 +2195,30 @@
             $('resultTime').textContent = `⏱️ Время: ${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
             $('quizResults').classList.add('show');
+
+            // Confetti celebration for perfect or near-perfect scores
+            if (score === 100 || (green === total && total > 0)) {
+                setTimeout(() => {
+                    if (typeof confetti !== 'undefined') {
+                        confetti({
+                            particleCount: 150,
+                            spread: 70,
+                            origin: { y: 0.6 }
+                        });
+                        sound.play('win');
+                    }
+                }, 300);
+            } else if (score >= 90) {
+                setTimeout(() => {
+                    if (typeof confetti !== 'undefined') {
+                        confetti({
+                            particleCount: 50,
+                            spread: 50,
+                            origin: { y: 0.7 }
+                        });
+                    }
+                }, 300);
+            }
         }
 
         function reviewMap() {
@@ -2159,6 +2251,7 @@
         async function loadGeo() {
             try {
                 const res = await fetch(GEOJSON_URL);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = await res.json();
                 countries = data.features.filter(f => f.properties.NAME && !['French Guiana', 'Reunion', 'Martinique', 'Guadeloupe'].includes(f.properties.NAME));
                 countries.forEach(f => { if (f.properties.NAME === 'Israel') f.properties.NAME = 'Palestine'; });
@@ -2174,7 +2267,26 @@
                 if (saved) try { studied = new Set(JSON.parse(saved)); } catch { }
                 updateUI(); updateStats();
                 $('loading').classList.add('hide');
-            } catch (e) { console.error(e); alert('Failed to load map data'); }
+            } catch (e) {
+                console.error('Map load error:', e);
+                $('loading').classList.add('hide');
+                // Show error overlay
+                const errorDiv = document.createElement('div');
+                errorDiv.style.cssText = 'position:fixed;inset:0;background:var(--bg-primary);display:flex;align-items:center;justify-content:center;z-index:10000;flex-direction:column;gap:20px;padding:20px;text-align:center';
+                errorDiv.innerHTML = `
+                    <div style="font-size:3rem;">⚠️</div>
+                    <div style="font-size:1.2rem;color:var(--text-primary);max-width:400px;">
+                        ${lang === 'ru' ? 'Не удалось загрузить карту' : lang === 'kz' ? 'Картаны жүктеу мүмкін болмады' : 'Failed to load map data'}
+                    </div>
+                    <div style="font-size:0.9rem;color:var(--text-muted);max-width:400px;">
+                        ${lang === 'ru' ? 'Проверьте подключение к интернету и обновите страницу' : lang === 'kz' ? 'Интернет байланысын тексеріп, бетті жаңартыңыз' : 'Check your internet connection and refresh the page'}
+                    </div>
+                    <button onclick="location.reload()" style="padding:12px 24px;background:var(--accent);border:none;border-radius:8px;color:white;font-weight:600;cursor:pointer;margin-top:10px;">
+                        ${lang === 'ru' ? '🔄 Обновить' : lang === 'kz' ? '🔄 Жаңарту' : '🔄 Reload'}
+                    </button>
+                `;
+                document.body.appendChild(errorDiv);
+            }
         }
 
         function createLabels() {
@@ -2228,6 +2340,20 @@
                 toggle.classList.toggle('open', open);
                 toggle.textContent = open ? '✕' : '☰';
             };
+
+            // Setup quiz radio button handlers once
+            document.querySelectorAll('#quizSetup .radio-option').forEach(opt => {
+                opt.addEventListener('click', (e) => {
+                    if (e.target.type === 'checkbox') return;
+                    const group = opt.closest('.radio-group');
+                    if (group) {
+                        group.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
+                        opt.classList.add('selected');
+                        const rb = opt.querySelector('input[type="radio"]');
+                        if (rb) rb.checked = true;
+                    }
+                });
+            });
 
             document.querySelectorAll('.lang-btn').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
             $('randomBtn').addEventListener('click', () => {
