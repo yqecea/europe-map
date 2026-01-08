@@ -794,6 +794,481 @@
         .country-pulse {
             animation: pulse-country 0.6s ease-out;
         }
+
+        /* Map labels */
+        .map-label {
+            position: relative;
+            text-align: center;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .label-country {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            color: #e0e0f0;
+            text-shadow:
+                0 0 4px rgba(0, 0, 0, 0.9),
+                0 0 8px rgba(0, 0, 0, 0.7),
+                1px 1px 2px rgba(0, 0, 0, 0.8);
+            line-height: 1.2;
+        }
+
+        .label-capital {
+            font-family: 'Inter', sans-serif;
+            font-size: 9px;
+            font-weight: 400;
+            color: #a0a0c0;
+            text-shadow:
+                0 0 3px rgba(0, 0, 0, 0.9),
+                0 0 6px rgba(0, 0, 0, 0.7),
+                1px 1px 2px rgba(0, 0, 0, 0.8);
+            margin-top: 1px;
+        }
+
+        .label-capital::before {
+            content: '★ ';
+            color: var(--accent-light);
+            font-size: 8px;
+        }
+
+        /* Hide labels during quiz */
+        .labels-hidden .map-label {
+            display: none !important;
+        }
+
+        /* Quiz color system */
+        .quiz-green {
+            fill: #22c55e !important;
+            fill-opacity: 0.9 !important;
+        }
+
+        .quiz-yellow {
+            fill: #eab308 !important;
+            fill-opacity: 0.9 !important;
+        }
+
+        .quiz-orange {
+            fill: #f97316 !important;
+            fill-opacity: 0.9 !important;
+        }
+
+        .quiz-purple {
+            fill: #a855f7 !important;
+            fill-opacity: 0.9 !important;
+            animation: quiz-pulse 1s ease-in-out infinite;
+        }
+
+        .quiz-red {
+            fill: #ef4444 !important;
+            fill-opacity: 0.9 !important;
+        }
+
+        @keyframes quiz-pulse {
+
+            0%,
+            100% {
+                fill-opacity: 0.9;
+            }
+
+            50% {
+                fill-opacity: 0.5;
+            }
+        }
+
+        /* Quiz setup modal */
+        .quiz-setup-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quiz-setup-modal.show {
+            display: flex;
+        }
+
+        .quiz-setup-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            max-width: 420px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .quiz-setup-content h2 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+        }
+
+        .setting-group>label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .radio-option:hover {
+            border-color: var(--accent);
+        }
+
+        .radio-option.selected {
+            border-color: var(--accent);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .radio-option input {
+            margin-top: 2px;
+            accent-color: var(--accent);
+        }
+
+        .radio-option .option-info {
+            flex: 1;
+        }
+
+        .radio-option .option-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .radio-option .option-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .quiz-rules {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 20px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .quiz-rules h4 {
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .color-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .color-legend span {
+            font-size: 0.7rem;
+        }
+
+        .start-quiz-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .start-quiz-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--accent-glow);
+        }
+
+        /* Enhanced quiz prompt */
+        .quiz-prompt {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 24px;
+            z-index: 1001;
+            text-align: center;
+            box-shadow: var(--shadow);
+            display: none;
+            min-width: 280px;
+        }
+
+        .quiz-prompt.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .quiz-progress {
+            background: var(--bg-tertiary);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .quiz-score {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .quiz-prompt h3 {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .quiz-prompt .quiz-target {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--accent-light);
+        }
+
+        .quiz-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .hint-btn {
+            flex: 1;
+            padding: 10px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .hint-btn:hover {
+            background: var(--warning);
+            color: #fff;
+            border-color: var(--warning);
+        }
+
+        .hint-btn.pass-mode {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .end-quiz-btn {
+            padding: 10px 16px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .end-quiz-btn:hover {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        /* Quiz results modal */
+        .quiz-results-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quiz-results-modal.show {
+            display: flex;
+        }
+
+        .quiz-results-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .quiz-results-content h2 {
+            font-size: 1.3rem;
+            margin-bottom: 16px;
+        }
+
+        .result-score {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .result-comment {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin: 12px 0 20px;
+        }
+
+        .result-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .result-stat {
+            background: var(--bg-tertiary);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+        }
+
+        .result-stat .stat-num {
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .result-time {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .result-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .review-map-btn {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border) !important;
+        }
+
+        .retry-quiz-btn {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: #fff;
+        }
+
+        /* Wrong click feedback */
+        .wrong-feedback {
+            position: fixed;
+            background: rgba(239, 68, 68, 0.9);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            pointer-events: none;
+            z-index: 9999;
+            animation: wrongFade 1.5s ease-out forwards;
+        }
+
+        @keyframes wrongFade {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            70% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+
+        @media(max-width:768px) {
+
+            .quiz-setup-content,
+            .quiz-results-content {
+                padding: 20px;
+            }
+
+            .quiz-prompt {
+                top: 70px;
+                left: 10px;
+                right: 10px;
+                transform: none;
+                min-width: auto;
+                padding: 12px 16px;
+            }
+
+            .quiz-prompt .quiz-target {
+                font-size: 1.1rem;
+            }
+
+            .quiz-actions {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 
@@ -822,9 +1297,118 @@
             <button class="help-close" id="helpClose">Закрыть</button>
         </div>
     </div>
+    <!-- Quiz Setup Modal -->
+    <div class="quiz-setup-modal" id="quizSetup">
+        <div class="quiz-setup-content">
+            <h2>🎯 Настройки викторины</h2>
+
+            <div class="setting-group">
+                <label>Уровень сложности</label>
+                <div class="radio-group" id="difficultyGroup">
+                    <label class="radio-option selected">
+                        <input type="radio" name="difficulty" value="beginner" checked>
+                        <div class="option-info">
+                            <div class="option-title">👶 Новичок</div>
+                            <div class="option-desc">Подсказки после 3 ошибок, цветовая маркировка</div>
+                        </div>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="difficulty" value="expert">
+                        <div class="option-info">
+                            <div class="option-title">🎓 Эксперт</div>
+                            <div class="option-desc">Без автоподсказок, цветовая маркировка</div>
+                        </div>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="difficulty" value="master">
+                        <div class="option-info">
+                            <div class="option-title">🏆 Мастер</div>
+                            <div class="option-desc">Без подсказок, без цветовой маркировки</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label>Режим викторины</label>
+                <div class="radio-group" id="quizTypeGroup">
+                    <label class="radio-option selected">
+                        <input type="radio" name="quizType" value="countries" checked>
+                        <div class="option-info">
+                            <div class="option-title">🗺️ Страны</div>
+                            <div class="option-desc">Найти страну по названию</div>
+                        </div>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="quizType" value="capitals">
+                        <div class="option-info">
+                            <div class="option-title">⭐ Столицы</div>
+                            <div class="option-desc">Найти страну по названию столицы</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="quiz-rules">
+                <h4>Правила</h4>
+                Найдите все страны Европы. Цвет зависит от количества попыток:
+                <div class="color-legend">
+                    <span>🟢 1-я</span>
+                    <span>🟡 2-я</span>
+                    <span>🟠 3-я</span>
+                    <span>🟣 подсказка</span>
+                    <span>🔴 сдался</span>
+                </div>
+            </div>
+
+            <button class="start-quiz-btn" id="startQuizBtn">🚀 Поехали!</button>
+        </div>
+    </div>
+
+    <!-- Quiz Results Modal -->
+    <div class="quiz-results-modal" id="quizResults">
+        <div class="quiz-results-content">
+            <h2>📊 Результаты</h2>
+            <div class="result-score" id="resultScore">0%</div>
+            <p class="result-comment" id="resultComment"></p>
+            <div class="result-stats">
+                <div class="result-stat">
+                    <span class="stat-num" id="statGreen">0</span>
+                    🟢 С первой
+                </div>
+                <div class="result-stat">
+                    <span class="stat-num" id="statYellow">0</span>
+                    🟡 Со второй
+                </div>
+                <div class="result-stat">
+                    <span class="stat-num" id="statOrange">0</span>
+                    🟠 С третьей
+                </div>
+                <div class="result-stat">
+                    <span class="stat-num" id="statRed">0</span>
+                    🔴 Не угадал
+                </div>
+            </div>
+            <div class="result-time" id="resultTime">⏱️ Время: 00:00</div>
+            <div class="result-actions">
+                <button class="review-map-btn" id="reviewMapBtn">Осмотреть карту</button>
+                <button class="retry-quiz-btn" id="retryQuizBtn">Ещё раз</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Prompt -->
     <div class="quiz-prompt" id="quizPrompt">
-        <h3 id="quizLabel">Найдите на карте:</h3>
-        <p id="quizCountry"></p>
+        <div class="quiz-header">
+            <span class="quiz-progress" id="quizProgressText">1/51</span>
+            <span class="quiz-score" id="quizScoreText">🎯 100%</span>
+        </div>
+        <h3 id="quizLabel">Где находится:</h3>
+        <p class="quiz-target" id="quizCountry"></p>
+        <div class="quiz-actions">
+            <button class="hint-btn" id="hintBtn">Не знаю</button>
+            <button class="end-quiz-btn" id="endQuizBtn">Завершить</button>
+        </div>
     </div>
     <button class="mobile-toggle" id="mobileToggle">☰</button>
     <div class="mobile-overlay" id="mobileOverlay"></div>
@@ -938,7 +1522,15 @@
             "Palestine": { en: "Palestine", ru: "Палестина", kz: "Палестина", cap: { en: "Ramallah", ru: "Рамалла", kz: "Рамалла" }, coords: [31.89, 35.20] },
             "Holy See (Vatican City)": { en: "Vatican City", ru: "Ватикан", kz: "Ватикан", cap: { en: "Vatican City", ru: "Ватикан", kz: "Ватикан" }, coords: [41.9, 12.45] }
         };
-        let map, geoLayer, layers = {}, active = null, studied = new Set(), marker = null, countries = [], lang = 'ru', quizMode = false, quizTarget = null, timerStart = Date.now(), timerInterval;
+        let map, geoLayer, layers = {}, active = null, studied = new Set(), marker = null, countries = [], lang = 'ru', quizMode = false, quizTarget = null, timerStart = Date.now(), timerInterval, labelsLayer;
+        // Enhanced quiz state
+        let quizAttempts = {};      // {countryKey: attemptCount}
+        let quizResults = {};       // {countryKey: 'green'|'yellow'|'orange'|'purple'|'red'}
+        let quizDifficulty = 'beginner'; // 'beginner'|'expert'|'master'
+        let quizType = 'countries'; // 'countries'|'capitals'
+        let quizAnswered = new Set(); // Countries already answered in current quiz
+        let quizStartTime = 0;
+        let hintShown = false;      // Is hint currently shown for current question
         const GEOJSON_URL = 'https://raw.githubusercontent.com/leakyMirror/map-of-europe/master/GeoJSON/europe.geojson';
         const $ = id => document.getElementById(id);
         const t = key => TRANSLATIONS[lang][key] || key;
@@ -967,6 +1559,7 @@
             $('hReset').textContent = t('resetKey');
             document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
             buildList();
+            updateLabels();
         }
         function setLang(l) { lang = l; localStorage.setItem('euroLang', l); updateUI(); }
         function toast(msg, type = '') { const el = $('toast'); el.textContent = msg; el.className = 'toast show' + (type ? ' ' + type : ''); setTimeout(() => el.classList.remove('show'), 2000); }
@@ -1000,8 +1593,8 @@
         function activeStyle() { return { fillColor: '#4a4a6a', weight: 2.5, color: '#818cf8', fillOpacity: 1 }; }
         function select(key) {
             if (quizMode) {
-                if (key === quizTarget) { toast(t('correct'), 'success'); studied.add(key); nextQuiz(); }
-                else { toast(t('wrong')); return; }
+                handleQuizClick(key);
+                return;
             }
             if (active && layers[active]) layers[active].setStyle(defaultStyle());
             document.querySelectorAll('.country-item.active').forEach(el => el.classList.remove('active'));
@@ -1021,7 +1614,6 @@
             if (li) {
                 li.classList.add('active');
                 li.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                // Add visual feedback pulse
                 li.classList.add('country-pulse');
                 li.addEventListener('animationend', () => li.classList.remove('country-pulse'), { once: true });
             }
@@ -1030,23 +1622,268 @@
             localStorage.setItem('euroStudied', JSON.stringify([...studied]));
             updateStats();
         }
+
+        function handleQuizClick(key) {
+            // If already answered, just show info
+            if (quizAnswered.has(key)) {
+                toast(`${getName(key)} ★ ${getCap(key)}`);
+                return;
+            }
+
+            // Correct answer
+            if (key === quizTarget) {
+                const attempts = quizAttempts[key] || 1;
+                let color;
+                if (hintShown) {
+                    color = 'red'; // Used hint then clicked
+                } else if (attempts === 1) {
+                    color = 'green';
+                } else if (attempts === 2) {
+                    color = 'yellow';
+                } else if (attempts === 3) {
+                    color = 'orange';
+                } else {
+                    color = 'orange';
+                }
+
+                quizResults[key] = color;
+                quizAnswered.add(key);
+                applyQuizColor(key, color);
+
+                toast(t('correct'), 'success');
+                hintShown = false;
+                $('hintBtn').textContent = 'Не знаю';
+                $('hintBtn').classList.remove('pass-mode');
+
+                nextQuizQuestion();
+            } else {
+                // Wrong answer
+                quizAttempts[quizTarget] = (quizAttempts[quizTarget] || 0) + 1;
+
+                // Show feedback at click position
+                if (quizDifficulty === 'beginner') {
+                    showWrongFeedback(key);
+                }
+
+                // Auto-hint after 3 wrong attempts (beginner only)
+                if (quizAttempts[quizTarget] >= 3 && quizDifficulty === 'beginner' && !hintShown) {
+                    showQuizHint();
+                } else {
+                    toast(t('wrong'));
+                }
+            }
+        }
+
+        function applyQuizColor(key, color) {
+            const layer = layers[key];
+            if (layer && quizDifficulty !== 'master') {
+                // Remove old quiz classes
+                const el = layer.getElement();
+                if (el) {
+                    el.classList.remove('quiz-green', 'quiz-yellow', 'quiz-orange', 'quiz-purple', 'quiz-red');
+                    el.classList.add(`quiz-${color}`);
+                }
+            }
+        }
+
+        function showWrongFeedback(clickedKey) {
+            const feedback = document.createElement('div');
+            feedback.className = 'wrong-feedback';
+            feedback.textContent = `Это ${getName(clickedKey)}`;
+
+            // Position near the country center
+            const coords = getCoords(clickedKey);
+            if (coords) {
+                const point = map.latLngToContainerPoint(coords);
+                const mapRect = document.getElementById('map').getBoundingClientRect();
+                feedback.style.left = (mapRect.left + point.x) + 'px';
+                feedback.style.top = (mapRect.top + point.y) + 'px';
+            } else {
+                feedback.style.left = '50%';
+                feedback.style.top = '50%';
+            }
+
+            document.body.appendChild(feedback);
+            setTimeout(() => feedback.remove(), 1500);
+        }
+
+        function showQuizHint() {
+            hintShown = true;
+            applyQuizColor(quizTarget, 'purple');
+            $('hintBtn').textContent = 'Дальше';
+            $('hintBtn').classList.add('pass-mode');
+        }
+
         function randomCountry() {
             const unstudied = countries.filter(c => !studied.has(c.properties.NAME));
             const pool = unstudied.length ? unstudied : countries;
             const pick = pool[Math.floor(Math.random() * pool.length)];
             select(pick.properties.NAME);
         }
-        function toggleQuiz() {
-            quizMode = !quizMode;
-            $('quizBtn').classList.toggle('quiz-active', quizMode);
-            if (quizMode) nextQuiz(); else $('quizPrompt').classList.remove('show');
+
+        function openQuizSetup() {
+            $('quizSetup').classList.add('show');
+            // Setup radio button handlers
+            document.querySelectorAll('.radio-option').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    const group = opt.closest('.radio-group');
+                    group.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
+                    opt.classList.add('selected');
+                    opt.querySelector('input').checked = true;
+                });
+            });
         }
-        function nextQuiz() {
-            const unstudied = countries.filter(c => !studied.has(c.properties.NAME));
-            if (!unstudied.length) { quizMode = false; $('quizBtn').classList.remove('quiz-active'); $('quizPrompt').classList.remove('show'); toast(t('correct')); return; }
-            quizTarget = unstudied[Math.floor(Math.random() * unstudied.length)].properties.NAME;
-            $('quizCountry').textContent = getName(quizTarget);
+
+        function startQuiz() {
+            // Get settings
+            quizDifficulty = document.querySelector('input[name="difficulty"]:checked').value;
+            quizType = document.querySelector('input[name="quizType"]:checked').value;
+
+            // Reset quiz state
+            quizAttempts = {};
+            quizResults = {};
+            quizAnswered = new Set();
+            quizStartTime = Date.now();
+            hintShown = false;
+
+            // Reset map colors
+            Object.keys(layers).forEach(key => {
+                const el = layers[key].getElement();
+                if (el) {
+                    el.classList.remove('quiz-green', 'quiz-yellow', 'quiz-orange', 'quiz-purple', 'quiz-red');
+                }
+                layers[key].setStyle(defaultStyle());
+            });
+
+            // Close setup, start quiz
+            $('quizSetup').classList.remove('show');
+            quizMode = true;
+            $('quizBtn').classList.add('quiz-active');
+            document.querySelector('#map').classList.add('labels-hidden');
+
+            nextQuizQuestion();
+        }
+
+        function nextQuizQuestion() {
+            const remaining = countries.filter(c => !quizAnswered.has(c.properties.NAME));
+
+            if (!remaining.length) {
+                showQuizResults();
+                return;
+            }
+
+            // Pick random question
+            quizTarget = remaining[Math.floor(Math.random() * remaining.length)].properties.NAME;
+            quizAttempts[quizTarget] = 0;
+
+            // Update UI
+            const total = countries.length;
+            const answered = quizAnswered.size;
+            const greenCount = Object.values(quizResults).filter(r => r === 'green').length;
+            const score = answered > 0 ? Math.round((greenCount / answered) * 100) : 100;
+
+            $('quizProgressText').textContent = `${answered + 1}/${total}`;
+            $('quizScoreText').textContent = `🎯 ${score}%`;
+
+            // Show question
+            if (quizType === 'capitals') {
+                $('quizLabel').textContent = 'Столица:';
+                $('quizCountry').textContent = getCap(quizTarget);
+            } else {
+                $('quizLabel').textContent = 'Где находится:';
+                $('quizCountry').textContent = getName(quizTarget);
+            }
+
             $('quizPrompt').classList.add('show');
+        }
+
+        function handleHintButton() {
+            if (hintShown) {
+                // Pass mode - skip this question
+                quizResults[quizTarget] = 'red';
+                quizAnswered.add(quizTarget);
+                applyQuizColor(quizTarget, 'red');
+
+                hintShown = false;
+                $('hintBtn').textContent = 'Не знаю';
+                $('hintBtn').classList.remove('pass-mode');
+
+                nextQuizQuestion();
+            } else {
+                // Show hint
+                showQuizHint();
+            }
+        }
+
+        function endQuiz() {
+            showQuizResults();
+        }
+
+        function showQuizResults() {
+            quizMode = false;
+            $('quizBtn').classList.remove('quiz-active');
+            $('quizPrompt').classList.remove('show');
+
+            // Calculate stats
+            const green = Object.values(quizResults).filter(r => r === 'green').length;
+            const yellow = Object.values(quizResults).filter(r => r === 'yellow').length;
+            const orange = Object.values(quizResults).filter(r => r === 'orange').length;
+            const red = Object.values(quizResults).filter(r => r === 'red' || r === 'purple').length;
+            const total = quizAnswered.size;
+            const score = total > 0 ? Math.round((green / total) * 100) : 0;
+
+            // Time
+            const elapsed = Math.floor((Date.now() - quizStartTime) / 1000);
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+
+            // Comment based on score
+            let comment;
+            if (score >= 90) comment = 'Превосходно! Вы отлично знаете географию! 🌟';
+            else if (score >= 70) comment = 'Хорошо! Но есть над чем работать. 📚';
+            else if (score >= 50) comment = 'Неплохо, но нужно подучить карту. 🗺️';
+            else if (score >= 30) comment = 'Есть куда расти! Попробуйте ещё раз. 💪';
+            else comment = 'Пора взяться за карту! 📖';
+
+            $('resultScore').textContent = score + '%';
+            $('resultComment').textContent = comment;
+            $('statGreen').textContent = green;
+            $('statYellow').textContent = yellow;
+            $('statOrange').textContent = orange;
+            $('statRed').textContent = red;
+            $('resultTime').textContent = `⏱️ Время: ${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+            $('quizResults').classList.add('show');
+        }
+
+        function reviewMap() {
+            $('quizResults').classList.remove('show');
+            // Keep colors visible for review
+        }
+
+        function retryQuiz() {
+            $('quizResults').classList.remove('show');
+            // Reset colors
+            document.querySelector('#map').classList.remove('labels-hidden');
+            Object.keys(layers).forEach(key => {
+                const el = layers[key].getElement();
+                if (el) {
+                    el.classList.remove('quiz-green', 'quiz-yellow', 'quiz-orange', 'quiz-purple', 'quiz-red');
+                }
+                layers[key].setStyle(defaultStyle());
+            });
+            openQuizSetup();
+        }
+
+        function toggleQuiz() {
+            if (quizMode) {
+                // End quiz
+                endQuiz();
+                document.querySelector('#map').classList.remove('labels-hidden');
+            } else {
+                // Start quiz setup
+                openQuizSetup();
+            }
         }
         function resetProgress() {
             if (!confirm('Reset progress?')) return;
@@ -1066,11 +1903,48 @@
                         l.on({ mouseover: () => { if (active !== key) { l.setStyle(hoverStyle()); l.bringToFront(); } }, mouseout: () => { if (active !== key) l.setStyle(defaultStyle()); }, click: () => select(key) });
                     }
                 }).addTo(map);
+                // Create labels layer
+                createLabels();
                 const saved = localStorage.getItem('euroStudied');
                 if (saved) try { studied = new Set(JSON.parse(saved)); } catch { }
                 updateUI(); updateStats();
                 $('loading').classList.add('hide');
             } catch (e) { console.error(e); alert('Failed to load map data'); }
+        }
+
+        function createLabels() {
+            labelsLayer = L.layerGroup().addTo(map);
+            countries.forEach(f => {
+                const key = f.properties.NAME;
+                const coords = getCoords(key);
+                if (coords) {
+                    const labelIcon = L.divIcon({
+                        className: 'map-label',
+                        html: `<div class="label-country">${getName(key)}</div><div class="label-capital">${getCap(key)}</div>`,
+                        iconSize: [100, 40],
+                        iconAnchor: [50, 20]
+                    });
+                    L.marker(coords, { icon: labelIcon, interactive: false }).addTo(labelsLayer);
+                }
+            });
+        }
+
+        function updateLabels() {
+            if (!labelsLayer) return;
+            labelsLayer.clearLayers();
+            countries.forEach(f => {
+                const key = f.properties.NAME;
+                const coords = getCoords(key);
+                if (coords) {
+                    const labelIcon = L.divIcon({
+                        className: 'map-label',
+                        html: `<div class="label-country">${getName(key)}</div><div class="label-capital">${getCap(key)}</div>`,
+                        iconSize: [100, 40],
+                        iconAnchor: [50, 20]
+                    });
+                    L.marker(coords, { icon: labelIcon, interactive: false }).addTo(labelsLayer);
+                }
+            });
         }
         function initMap() {
             map = L.map('map', { center: [54, 15], zoom: 4, minZoom: 3, maxZoom: 10, maxBounds: L.latLngBounds([34, -25], [72, 45]).pad(0.5), maxBoundsViscosity: 0.8 });
@@ -1103,6 +1977,13 @@
             $('mobileToggle').addEventListener('click', () => toggleSidebar());
             $('mobileOverlay').addEventListener('click', () => toggleSidebar(false));
             $('helpClose').addEventListener('click', () => $('helpModal').classList.remove('show'));
+
+            // Quiz event handlers
+            $('startQuizBtn').addEventListener('click', startQuiz);
+            $('hintBtn').addEventListener('click', handleHintButton);
+            $('endQuizBtn').addEventListener('click', endQuiz);
+            $('reviewMapBtn').addEventListener('click', reviewMap);
+            $('retryQuizBtn').addEventListener('click', retryQuiz);
 
             // Wrap select function to auto-close sidebar on mobile
             const originalSelect = select;
