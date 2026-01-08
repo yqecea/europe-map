@@ -839,25 +839,77 @@
         }
 
         /* Quiz color system */
+        /* Quiz color system (Motovskikh style) */
         .quiz-green {
-            fill: #22c55e !important;
+            fill: #4cb02c !important;
             fill-opacity: 0.9 !important;
         }
 
         .quiz-yellow {
-            fill: #eab308 !important;
+            fill: #fbc02d !important;
             fill-opacity: 0.9 !important;
         }
 
         .quiz-orange {
-            fill: #f97316 !important;
+            fill: #f57c00 !important;
+            fill-opacity: 0.9 !important;
+        }
+
+        .quiz-red {
+            fill: #d32f2f !important;
             fill-opacity: 0.9 !important;
         }
 
         .quiz-purple {
-            fill: #a855f7 !important;
+            fill: #a134de !important;
             fill-opacity: 0.9 !important;
-            animation: quiz-pulse 1s ease-in-out infinite;
+            animation: quiz-pulse 1.5s infinite;
+        }
+
+        @keyframes quiz-pulse {
+            0% {
+                fill-opacity: 0.6;
+            }
+
+            50% {
+                fill-opacity: 1;
+            }
+
+            100% {
+                fill-opacity: 0.6;
+            }
+        }
+
+        /* Floating Feedback Label */
+        .floating-feedback {
+            position: fixed;
+            background: rgba(40, 40, 40, 0.9);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(15px, 15px);
+            /* Offset from cursor */
+            animation: fadeOut 1.5s forwards;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+            }
+
+            70% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
         }
 
         .quiz-red {
@@ -1303,27 +1355,34 @@
             <h2>🎯 Настройки викторины</h2>
 
             <div class="setting-group">
-                <label>Уровень сложности</label>
+                <label id="lblDifficulty">Уровень сложности</label>
                 <div class="radio-group" id="difficultyGroup">
                     <label class="radio-option selected">
                         <input type="radio" name="difficulty" value="beginner" checked>
                         <div class="option-info">
-                            <div class="option-title">👶 Новичок</div>
-                            <div class="option-desc">Подсказки после 3 ошибок, цветовая маркировка</div>
+                            <div class="option-title" id="optNovice">👶 Новичок</div>
+                            <div class="option-desc" id="optNoviceDesc">Подсказки, заливка найденных объектов</div>
                         </div>
                     </label>
                     <label class="radio-option">
-                        <input type="radio" name="difficulty" value="expert">
+                        <input type="radio" name="difficulty" value="professor">
                         <div class="option-info">
-                            <div class="option-title">🎓 Эксперт</div>
-                            <div class="option-desc">Без автоподсказок, цветовая маркировка</div>
+                            <div class="option-title" id="optProf">👨‍🏫 Профессор</div>
+                            <div class="option-desc" id="optProfDesc">Без названий в ошибках, без подсказки цветом</div>
                         </div>
                     </label>
                     <label class="radio-option">
-                        <input type="radio" name="difficulty" value="master">
+                        <input type="radio" name="difficulty" value="academic">
                         <div class="option-info">
-                            <div class="option-title">🏆 Мастер</div>
-                            <div class="option-desc">Без подсказок, без цветовой маркировки</div>
+                            <div class="option-title" id="optAcad">🎓 Академик</div>
+                            <div class="option-desc" id="optAcadDesc">Никакой пощады. Без подсказок и цветов</div>
+                        </div>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="difficulty" value="zen">
+                        <div class="option-info">
+                            <div class="option-title" id="optZen">🧘 Соискатель</div>
+                            <div class="option-desc" id="optZenDesc">Вопросов нет, просмотр и изучение карты</div>
                         </div>
                     </label>
                 </div>
@@ -1349,15 +1408,25 @@
                 </div>
             </div>
 
+            <div class="setting-group">
+                <label>Прочее</label>
+                <div class="radio-group">
+                    <label class="radio-option selected" style="padding: 8px;">
+                        <input type="checkbox" id="timerToggle" checked>
+                        <div class="option-info">
+                            <div class="option-title">⏱️ Таймер</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
             <div class="quiz-rules">
                 <h4>Правила</h4>
-                Найдите все страны Европы. Цвет зависит от количества попыток:
                 <div class="color-legend">
-                    <span>🟢 1-я</span>
-                    <span>🟡 2-я</span>
-                    <span>🟠 3-я</span>
-                    <span>🟣 подсказка</span>
-                    <span>🔴 сдался</span>
+                    <span id="legGreen">🟢 1-я попытка</span>
+                    <span id="legYellow">🟡 2-я попытка</span>
+                    <span id="legOrange">🟠 3-я попытка</span>
+                    <span id="legRed">🔴 Сдался / 4+</span>
                 </div>
             </div>
 
@@ -1463,9 +1532,36 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script>
         const TRANSLATIONS = {
-            ru: { title: "Контурная карта Европы", subtitle: "Интерактивная учебная карта Европы", search: "Поиск стран...", random: "Случайная", quiz: "Викторина", total: "Страны", studied: "Изучено", progress: "Прогресс", time: "Время", find: "Найдите на карте:", correct: "Правильно!", wrong: "Неверно. Попробуйте ещё!", reset: "Прогресс сброшен", help: "Горячие клавиши", close: "Закрыть", nav: "Навигация по списку", searchKey: "Поиск", randomKey: "Случайная страна", quizKey: "Режим викторины", helpKey: "Справка", resetKey: "Сброс выбора", capital: "Столица" },
-            en: { title: "Europe Contour Map", subtitle: "Interactive Study Map of Europe", search: "Search countries...", random: "Random", quiz: "Quiz", total: "Countries", studied: "Studied", progress: "Progress", time: "Time", find: "Find on the map:", correct: "Correct!", wrong: "Wrong. Try again!", reset: "Progress reset", help: "Keyboard Shortcuts", close: "Close", nav: "Navigate list", searchKey: "Search", randomKey: "Random country", quizKey: "Quiz mode", helpKey: "Help", resetKey: "Reset selection", capital: "Capital" },
-            kz: { title: "Еуропа контурлық картасы", subtitle: "Еуропаның интерактивті оқу картасы", search: "Елдерді іздеу...", random: "Кездейсоқ", quiz: "Викторина", total: "Елдер", studied: "Зерттелген", progress: "Үлгерім", time: "Уақыт", find: "Картадан табыңыз:", correct: "Дұрыс!", wrong: "Қате. Қайталап көріңіз!", reset: "Үлгерім қалпына келтірілді", help: "Пернелер", close: "Жабу", nav: "Тізімді шарлау", searchKey: "Іздеу", randomKey: "Кездейсоқ ел", quizKey: "Викторина режимі", helpKey: "Анықтама", resetKey: "Таңдауды қалпына келтіру", capital: "Астана" }
+            ru: {
+                title: "Контурная карта Европы", subtitle: "Интерактивная учебная карта Европы", search: "Поиск стран...", random: "Случайная", quiz: "Викторина", total: "Страны", studied: "Изучено", progress: "Прогресс", time: "Время", find: "Найдите на карте:", correct: "Правильно!", wrong: "Неверно. Попробуйте ещё!", reset: "Прогресс сброшен", help: "Горячие клавиши", close: "Закрыть", nav: "Навигация по списку", searchKey: "Поиск", randomKey: "Случайная страна", quizKey: "Режим викторины", helpKey: "Справка", resetKey: "Сброс выбора", capital: "Столица",
+                diffResult: "Результат", difficulty: "Уровень сложности",
+                novice: "Новичок", noviceDesc: "Подсказки, заливка ответов",
+                prof: "Профессор", profDesc: "Без названий в ошибках, без подсказок цветом",
+                acad: "Академик", acadDesc: "Никакой пощады. Без подсказок и цветов",
+                zen: "Соискатель", zenDesc: "Вопросов нет, просмотр и изучение карты",
+                qGreen: "С 1-й", qYellow: "С 2-й", qOrange: "С 3-й", qRed: "Сдался",
+                thisIs: "Это"
+            },
+            en: {
+                title: "Europe Contour Map", subtitle: "Interactive Study Map of Europe", search: "Search countries...", random: "Random", quiz: "Quiz", total: "Countries", studied: "Studied", progress: "Progress", time: "Time", find: "Find on the map:", correct: "Correct!", wrong: "Wrong. Try again!", reset: "Progress reset", help: "Keyboard Shortcuts", close: "Close", nav: "Navigate list", searchKey: "Search", randomKey: "Random country", quizKey: "Quiz mode", helpKey: "Help", resetKey: "Reset selection", capital: "Capital",
+                diffResult: "Result", difficulty: "Difficulty Level",
+                novice: "Novice", noviceDesc: "Hints, answer highlight",
+                prof: "Professor", profDesc: "No names in errors, no color hints",
+                acad: "Academic", acadDesc: "No mercy. No hints or colors",
+                zen: "Applicant", zenDesc: "No questions, just explore. Zen.",
+                qGreen: "1st try", qYellow: "2nd try", qOrange: "3rd try", qRed: "Gave up",
+                thisIs: "This is"
+            },
+            kz: {
+                title: "Еуропа контурлық картасы", subtitle: "Еуропаның интерактивті оқу картасы", search: "Елдерді іздеу...", random: "Кездейсоқ", quiz: "Викторина", total: "Елдер", studied: "Зерттелген", progress: "Үлгерім", time: "Уақыт", find: "Картадан табыңыз:", correct: "Дұрыс!", wrong: "Қате. Қайталап көріңіз!", reset: "Үлгерім қалпына келтірілді", help: "Пернелер", close: "Жабу", nav: "Тізімді шарлау", searchKey: "Іздеу", randomKey: "Кездейсоқ ел", quizKey: "Викторина режимі", helpKey: "Анықтама", resetKey: "Таңдауды қалпына келтіру", capital: "Астана",
+                diffResult: "Нәтиже", difficulty: "Қиындық деңгейі",
+                novice: "Жаңадан бастаушы", noviceDesc: "Көмек сөздер, жауап бояуы",
+                prof: "Профессор", profDesc: "Қателерде атаусыз, түстік көмексіз",
+                acad: "Академик", acadDesc: "Көмек жоқ. Қатал режим",
+                zen: "Ізденуші", zenDesc: "Сұрақсыз, картаны зерттеу. Дзен.",
+                qGreen: "1-ші", qYellow: "2-ші", qOrange: "3-ші", qRed: "Берілді",
+                thisIs: "Бұл"
+            }
         };
         const COUNTRIES = {
             "Albania": { en: "Albania", ru: "Албания", kz: "Албания", cap: { en: "Tirana", ru: "Тирана", kz: "Тирана" }, coords: [41.33, 19.82] },
@@ -1524,9 +1620,10 @@
         };
         let map, geoLayer, layers = {}, active = null, studied = new Set(), marker = null, countries = [], lang = 'ru', quizMode = false, quizTarget = null, timerStart = Date.now(), timerInterval, labelsLayer;
         // Enhanced quiz state
-        let quizAttempts = {};      // {countryKey: attemptCount}
+        // Enhanced quiz state
+        let quizAttempts = {};      // {countryKey: failureCount}
         let quizResults = {};       // {countryKey: 'green'|'yellow'|'orange'|'purple'|'red'}
-        let quizDifficulty = 'beginner'; // 'beginner'|'expert'|'master'
+        let quizDifficulty = 'beginner'; // 'beginner'|'professor'|'academic'|'zen'
         let quizType = 'countries'; // 'countries'|'capitals'
         let quizAnswered = new Set(); // Countries already answered in current quiz
         let quizStartTime = 0;
@@ -1557,9 +1654,37 @@
             $('hQuiz').textContent = t('quizKey');
             $('hHelp').textContent = t('helpKey');
             $('hReset').textContent = t('resetKey');
+
+            // Quiz Setup translations
+            $('lblDifficulty').textContent = t('difficulty');
+            $('optNovice').textContent = '👶 ' + t('novice');
+            $('optNoviceDesc').textContent = t('noviceDesc');
+            $('optProf').textContent = '👨‍🏫 ' + t('prof');
+            $('optProfDesc').textContent = t('profDesc');
+            $('optAcad').textContent = '🎓 ' + t('acad');
+            $('optAcadDesc').textContent = t('acadDesc');
+            $('optZen').textContent = '🧘 ' + t('zen');
+            $('optZenDesc').textContent = t('zenDesc');
+
+            $('legGreen').textContent = '🟢 ' + t('qGreen');
+            $('legYellow').textContent = '🟡 ' + t('qYellow');
+            $('legOrange').textContent = '🟠 ' + t('qOrange');
+            $('legRed').textContent = '🔴 ' + t('qRed');
+
             document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
             buildList();
             updateLabels();
+
+            // If quiz running, update prompt
+            if (quizMode && quizTarget && quizDifficulty !== 'zen') {
+                if (quizType === 'capitals') {
+                    $('quizLabel').textContent = t('find') + ' ' + t('capital');
+                    $('quizCountry').textContent = getCap(quizTarget);
+                } else {
+                    $('quizLabel').textContent = t('find');
+                    $('quizCountry').textContent = getName(quizTarget);
+                }
+            }
         }
         function setLang(l) { lang = l; localStorage.setItem('euroLang', l); updateUI(); }
         function toast(msg, type = '') { const el = $('toast'); el.textContent = msg; el.className = 'toast show' + (type ? ' ' + type : ''); setTimeout(() => el.classList.remove('show'), 2000); }
@@ -1568,7 +1693,13 @@
             $('studiedStat').textContent = studied.size;
             $('progressStat').textContent = countries.length ? Math.round(studied.size / countries.length * 100) + '%' : '0%';
         }
-        function updateTimer() { const s = Math.floor((Date.now() - timerStart) / 1000); const m = Math.floor(s / 60); $('timer').textContent = String(m).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+        function updateTimer() {
+            // Only run timer if needed
+            if (!timerInterval) return;
+            const s = Math.floor((Date.now() - timerStart) / 1000);
+            const m = Math.floor(s / 60);
+            $('timer').textContent = String(m).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+        }
         function buildList() {
             const list = $('countryList'); list.innerHTML = '';
             const sorted = [...countries].sort((a, b) => getName(a.properties.NAME).localeCompare(getName(b.properties.NAME), lang));
@@ -1579,7 +1710,6 @@
                 li.dataset.key = key;
                 li.innerHTML = `<div class="country-info"><div class="country-name">${name}</div><div class="country-capital">${cap}</div></div>`;
                 li.addEventListener('click', () => {
-                    // Use selectFromList if available (handles mobile auto-close), else fall back to select
                     if (window.selectFromList) window.selectFromList(key);
                     else select(key);
                 });
@@ -1591,11 +1721,21 @@
         function defaultStyle() { return { fillColor: '#1e1e2e', weight: 1.5, opacity: 1, color: '#3a3a4a', fillOpacity: 0.9 }; }
         function hoverStyle() { return { fillColor: '#2a2a3e', weight: 2, color: '#6366f1', fillOpacity: 0.95 }; }
         function activeStyle() { return { fillColor: '#4a4a6a', weight: 2.5, color: '#818cf8', fillOpacity: 1 }; }
-        function select(key) {
+        function select(key, event) {
             if (quizMode) {
-                handleQuizClick(key);
+                if (quizDifficulty === 'zen') {
+                    // Zen mode: Normal select + floating feedback label
+                    handleNormalSelect(key);
+                    showFloatingFeedback(key, event);
+                } else {
+                    handleQuizClick(key, event);
+                }
                 return;
             }
+            handleNormalSelect(key);
+        }
+
+        function handleNormalSelect(key) {
             if (active && layers[active]) layers[active].setStyle(defaultStyle());
             document.querySelectorAll('.country-item.active').forEach(el => el.classList.remove('active'));
             if (marker) { map.removeLayer(marker); marker = null; }
@@ -1613,7 +1753,8 @@
             const li = document.querySelector(`.country-item[data-key="${key}"]`);
             if (li) {
                 li.classList.add('active');
-                li.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Only scroll if not in Zen mode to avoid jumping around too much
+                if (quizDifficulty !== 'zen') li.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 li.classList.add('country-pulse');
                 li.addEventListener('animationend', () => li.classList.remove('country-pulse'), { once: true });
             }
@@ -1623,60 +1764,132 @@
             updateStats();
         }
 
-        function handleQuizClick(key) {
-            // If already answered, just show info
-            if (quizAnswered.has(key)) {
-                toast(`${getName(key)} ★ ${getCap(key)}`);
-                return;
-            }
+        function handleQuizClick(key, event) {
+            // If already answered, ignore
+            if (quizAnswered.has(key)) return;
 
             // Correct answer
             if (key === quizTarget) {
-                const attempts = quizAttempts[key] || 1;
-                let color;
+                const fails = quizAttempts[key] || 0;
+
+                // If hint was shown (manual or auto), it's a "red" result (Defeat)
                 if (hintShown) {
-                    color = 'red'; // Used hint then clicked
-                } else if (attempts === 1) {
-                    color = 'green';
-                } else if (attempts === 2) {
-                    color = 'yellow';
-                } else if (attempts === 3) {
-                    color = 'orange';
+                    quizResults[key] = 'red';
+                    applyQuizColor(key, 'red');
                 } else {
-                    color = 'orange';
+                    // Standard scoring based on attempts
+                    if (fails === 0) {
+                        quizResults[key] = 'green';
+                        applyQuizColor(key, 'green');
+                    } else if (fails === 1) {
+                        quizResults[key] = 'yellow';
+                        applyQuizColor(key, 'yellow');
+                    } else if (fails === 2) {
+                        quizResults[key] = 'orange'; // 3rd try correct
+                        applyQuizColor(key, 'orange');
+                    } else {
+                        // This case only happens if auto-hint triggered but user clicked correct anyway?
+                        // Or if logic drifted. Default to Orange/Red.
+                        quizResults[key] = 'red';
+                        applyQuizColor(key, 'red');
+                    }
                 }
 
-                quizResults[key] = color;
                 quizAnswered.add(key);
-                applyQuizColor(key, color);
 
-                toast(t('correct'), 'success');
+                // Score update
+                const correctCount = Object.values(quizResults).filter(r => r !== 'red').length;
+                quizScoreText.textContent = `${t('correct')}: ${correctCount}`;
+
                 hintShown = false;
                 $('hintBtn').textContent = 'Не знаю';
                 $('hintBtn').classList.remove('pass-mode');
 
-                nextQuizQuestion();
+                // Small delay before next question
+                setTimeout(nextQuizQuestion, 600);
             } else {
                 // Wrong answer
                 quizAttempts[quizTarget] = (quizAttempts[quizTarget] || 0) + 1;
+                const currentFails = quizAttempts[quizTarget];
 
-                // Show feedback at click position
+                // Feedback
                 if (quizDifficulty === 'beginner') {
-                    showWrongFeedback(key);
+                    // Floating label with country name
+                    showFloatingFeedback(key, event);
+                } else if (quizDifficulty === 'professor') {
+                    // Generic "Wrong" label without name
+                    showFloatingFeedback(null, event, t('wrong'));
                 }
 
-                // Auto-hint after 3 wrong attempts (beginner only)
-                if (quizAttempts[quizTarget] >= 3 && quizDifficulty === 'beginner' && !hintShown) {
+                // Auto-Hint Logic (3+ fails)
+                // Motovskikh: After 3 errors, correct country pulses purple.
+                if (quizDifficulty === 'beginner' && currentFails >= 3 && !hintShown) {
                     showQuizHint();
-                } else {
-                    toast(t('wrong'));
                 }
+            }
+        }
+
+        function showFloatingFeedback(countryKey, event, overrideText = null) {
+            // Clean existing
+            document.querySelectorAll('.floating-feedback').forEach(el => el.remove());
+
+            const el = document.createElement('div');
+            el.className = 'floating-feedback';
+
+            if (overrideText) {
+                el.textContent = overrideText;
+            } else if (countryKey) {
+                el.textContent = getName(countryKey);
+            } else {
+                return;
+            }
+
+            if (event && event.clientX) {
+                el.style.left = event.clientX + 'px';
+                el.style.top = event.clientY + 'px';
+            } else {
+                // Fallback to center if no event (e.g. keyboard)
+                el.style.left = '50%';
+                el.style.top = '50%';
+                el.style.transform = 'translate(-50%, -50%)';
+            }
+
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1200);
+        } const fails = quizAttempts[quizTarget];
+
+        // Feedback based on difficulty
+        if (quizDifficulty === 'beginner') {
+            // Show "This is [X]" toast/feedback
+            showWrongFeedback(key, `${t('thisIs')} ${getName(key)}`);
+            // Auto hint after 3 fails
+            if (fails >= 3 && !hintShown) {
+                showQuizHint();
+            }
+        } else if (quizDifficulty === 'professor') {
+            // Show "Wrong" but NO name
+            showWrongFeedback(key, t('wrong'));
+        } else if (quizDifficulty === 'academic') {
+            // Silent failure. No popups.
+        }
+
+                // In beginner and professor, we might want to prevent "spam clicking"
+                // But simplified logic: just increment fails.
             }
         }
 
         function applyQuizColor(key, color) {
             const layer = layers[key];
-            if (layer && quizDifficulty !== 'master') {
+            // Academic mode: no colors found
+            if (quizDifficulty === 'academic') return;
+
+            // Professor: found colors shown? user said "not highlighted purple, correct answer not highlighted purple".
+            // But usually "Found" objects are colored. "Correct answer is not highlighted purple" refers to the Hint/Target highlight.
+            // Motovskikh: "Professor: found objects do not show name... correct answer is not highlighted purple".
+            // Implementation: We WILL show the Green/Yellow/Orange/Red result on the map for history tracking
+            // UNLESS it's "Academic" ("No mercy. Found objects are NOT marked with color").
+
+            if (layer) {
                 // Remove old quiz classes
                 const el = layer.getElement();
                 if (el) {
@@ -1686,12 +1899,11 @@
             }
         }
 
-        function showWrongFeedback(clickedKey) {
+        function showWrongFeedback(clickedKey, msg) {
             const feedback = document.createElement('div');
             feedback.className = 'wrong-feedback';
-            feedback.textContent = `Это ${getName(clickedKey)}`;
+            feedback.textContent = msg;
 
-            // Position near the country center
             const coords = getCoords(clickedKey);
             if (coords) {
                 const point = map.latLngToContainerPoint(coords);
@@ -1708,8 +1920,19 @@
         }
 
         function showQuizHint() {
+            // Not available in Academic
+            if (quizDifficulty === 'academic') return;
+
             hintShown = true;
-            applyQuizColor(quizTarget, 'purple');
+            // Purple highlight logic
+            // Professor: "correct answer not highlighted purple". So only highlight if Beginner
+            if (quizDifficulty === 'beginner') {
+                applyQuizColor(quizTarget, 'purple');
+            } else {
+                // Professor: No purple header. But maybe the text gets bold?
+                // Just do nothing visual on map.
+            }
+
             $('hintBtn').textContent = 'Дальше';
             $('hintBtn').classList.add('pass-mode');
         }
@@ -1725,11 +1948,22 @@
             $('quizSetup').classList.add('show');
             // Setup radio button handlers
             document.querySelectorAll('.radio-option').forEach(opt => {
-                opt.addEventListener('click', () => {
+                opt.addEventListener('click', (e) => {
+                    // Allow clicking checkbox inside without triggering radio logic if different
+                    if (e.target.type === 'checkbox') return;
+
                     const group = opt.closest('.radio-group');
-                    group.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
-                    opt.classList.add('selected');
-                    opt.querySelector('input').checked = true;
+                    if (group) {
+                        // Radio logic
+                        group.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
+                        opt.classList.add('selected');
+                        const rb = opt.querySelector('input[type="radio"]');
+                        if (rb) rb.checked = true;
+                    } else {
+                        // Checkbox logic handled natively or manual toggle class
+                        // toggle class for visual
+                        // opt.classList.toggle('selected');
+                    }
                 });
             });
         }
@@ -1738,13 +1972,23 @@
             // Get settings
             quizDifficulty = document.querySelector('input[name="difficulty"]:checked').value;
             quizType = document.querySelector('input[name="quizType"]:checked').value;
+            const useTimer = document.getElementById('timerToggle').checked;
 
             // Reset quiz state
             quizAttempts = {};
             quizResults = {};
             quizAnswered = new Set();
             quizStartTime = Date.now();
+            timerStart = Date.now();
             hintShown = false;
+
+            // Clean timer
+            if (timerInterval) clearInterval(timerInterval);
+            if (useTimer || quizDifficulty === 'zen') {
+                timerInterval = setInterval(updateTimer, 1000);
+            } else {
+                $('timer').textContent = "00:00";
+            }
 
             // Reset map colors
             Object.keys(layers).forEach(key => {
@@ -1759,12 +2003,25 @@
             $('quizSetup').classList.remove('show');
             quizMode = true;
             $('quizBtn').classList.add('quiz-active');
+
             document.querySelector('#map').classList.add('labels-hidden');
+            // In Zen mode, we don't hide labels? Or maybe we do to force memory?
+            // "Viewer and study of map". Usually implies seeing labels. 
+            // Motovskikh: "Zen ... viewing and study". 
+            // Let's SHOW labels for Zen mode so they can study.
+            if (quizDifficulty === 'zen') {
+                document.querySelector('#map').classList.remove('labels-hidden');
+                $('quizPrompt').classList.remove('show');
+                toast(t('zenDesc'));
+                return;
+            }
 
             nextQuizQuestion();
         }
 
         function nextQuizQuestion() {
+            if (quizDifficulty === 'zen') return;
+
             const remaining = countries.filter(c => !quizAnswered.has(c.properties.NAME));
 
             if (!remaining.length) {
@@ -1779,19 +2036,28 @@
             // Update UI
             const total = countries.length;
             const answered = quizAnswered.size;
-            const greenCount = Object.values(quizResults).filter(r => r === 'green').length;
-            const score = answered > 0 ? Math.round((greenCount / answered) * 100) : 100;
+            // Weighted score? Or simple verified count?
+            // Motovskikh score is typically just % of correct.
+            // Let's stick to simple % of "not red" for now, or just answered count.
+            const s = Math.round((answered / total) * 100);
 
             $('quizProgressText').textContent = `${answered + 1}/${total}`;
-            $('quizScoreText').textContent = `🎯 ${score}%`;
+            $('quizScoreText').textContent = `🎯 ${Object.values(quizResults).filter(c => c !== 'red').length}`; // Show count of correct so far roughly
 
             // Show question
             if (quizType === 'capitals') {
-                $('quizLabel').textContent = 'Столица:';
+                $('quizLabel').textContent = t('find') + ' ' + t('capital');
                 $('quizCountry').textContent = getCap(quizTarget);
             } else {
-                $('quizLabel').textContent = 'Где находится:';
+                $('quizLabel').textContent = t('find');
                 $('quizCountry').textContent = getName(quizTarget);
+            }
+
+            // Academic: No hint button
+            if (quizDifficulty === 'academic') {
+                $('hintBtn').style.display = 'none';
+            } else {
+                $('hintBtn').style.display = 'block';
             }
 
             $('quizPrompt').classList.add('show');
@@ -1823,14 +2089,21 @@
             quizMode = false;
             $('quizBtn').classList.remove('quiz-active');
             $('quizPrompt').classList.remove('show');
+            if (timerInterval) clearInterval(timerInterval);
 
             // Calculate stats
             const green = Object.values(quizResults).filter(r => r === 'green').length;
             const yellow = Object.values(quizResults).filter(r => r === 'yellow').length;
             const orange = Object.values(quizResults).filter(r => r === 'orange').length;
-            const red = Object.values(quizResults).filter(r => r === 'red' || r === 'purple').length;
+            // Red includes explicit Give Up AND 4+ attempts
+            const red = Object.values(quizResults).filter(r => r === 'red' || r === 'purple').length; // Purple shouldn't happen in results prop but just in case
             const total = quizAnswered.size;
-            const score = total > 0 ? Math.round((green / total) * 100) : 0;
+
+            // Simple scoring: Green=1.0, Yellow=0.8, Orange=0.5, Red=0 ? 
+            // Or just a count. Let's do a weighted score for fun, or standard % of correct.
+            // Let's count ANY correct (Green/Yellow/Orange) as "Correct" but maybe with comments.
+            const correctCount = green + yellow + orange;
+            const score = total > 0 ? Math.round((correctCount / total) * 100) : 0;
 
             // Time
             const elapsed = Math.floor((Date.now() - quizStartTime) / 1000);
@@ -1863,16 +2136,8 @@
 
         function retryQuiz() {
             $('quizResults').classList.remove('show');
-            // Reset colors
-            document.querySelector('#map').classList.remove('labels-hidden');
-            Object.keys(layers).forEach(key => {
-                const el = layers[key].getElement();
-                if (el) {
-                    el.classList.remove('quiz-green', 'quiz-yellow', 'quiz-orange', 'quiz-purple', 'quiz-red');
-                }
-                layers[key].setStyle(defaultStyle());
-            });
             openQuizSetup();
+            // Map colors cleared in startQuiz
         }
 
         function toggleQuiz() {
@@ -1900,7 +2165,7 @@
                 geoLayer = L.geoJSON(countries, {
                     style: defaultStyle, onEachFeature: (f, l) => {
                         const key = f.properties.NAME; layers[key] = l;
-                        l.on({ mouseover: () => { if (active !== key) { l.setStyle(hoverStyle()); l.bringToFront(); } }, mouseout: () => { if (active !== key) l.setStyle(defaultStyle()); }, click: () => select(key) });
+                        l.on({ mouseover: () => { if (active !== key) { l.setStyle(hoverStyle()); l.bringToFront(); } }, mouseout: () => { if (active !== key) l.setStyle(defaultStyle()); }, click: (e) => select(key, e) });
                     }
                 }).addTo(map);
                 // Create labels layer
