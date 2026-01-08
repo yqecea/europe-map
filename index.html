@@ -28,7 +28,7 @@
             --border: rgba(255, 255, 255, 0.08);
             --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             --sidebar-w: 360px;
-            --radius: 12px
+            --radius: 12px;
         }
 
         * {
@@ -838,7 +838,6 @@
             display: none !important;
         }
 
-        /* Quiz color system */
         /* Quiz color system (Motovskikh style) */
         .quiz-green {
             fill: #4cb02c !important;
@@ -1703,7 +1702,6 @@
         };
         let map, geoLayer, layers = {}, active = null, studied = new Set(), marker = null, countries = [], lang = 'ru', quizMode = false, quizTarget = null, timerStart = Date.now(), timerInterval, labelsLayer;
         // Enhanced quiz state
-        // Enhanced quiz state
         let quizAttempts = {};      // {countryKey: failureCount}
         let quizResults = {};       // {countryKey: 'green'|'yellow'|'orange'|'purple'|'red'}
         let quizDifficulty = 'beginner'; // 'beginner'|'professor'|'academic'|'zen'
@@ -1987,25 +1985,7 @@
             }
         }
 
-        function showWrongFeedback(clickedKey, msg) {
-            const feedback = document.createElement('div');
-            feedback.className = 'wrong-feedback';
-            feedback.textContent = msg;
 
-            const coords = getCoords(clickedKey);
-            if (coords) {
-                const point = map.latLngToContainerPoint(coords);
-                const mapRect = document.getElementById('map').getBoundingClientRect();
-                feedback.style.left = (mapRect.left + point.x) + 'px';
-                feedback.style.top = (mapRect.top + point.y) + 'px';
-            } else {
-                feedback.style.left = '50%';
-                feedback.style.top = '50%';
-            }
-
-            document.body.appendChild(feedback);
-            setTimeout(() => feedback.remove(), 1500);
-        }
 
         function showQuizHint() {
             // Not available in Academic
@@ -2455,4 +2435,4 @@
     </script>
 </body>
 
-</html>й
+</html>
