@@ -557,13 +557,42 @@
             }
         }
 
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            bottom: 24px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.5);
+            z-index: 2002;
+            font-size: 1.5rem;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .mobile-toggle:active {
+            transform: scale(0.95);
+        }
+
         @media(max-width:768px) {
+            .mobile-toggle {
+                display: flex;
+            }
+
             .sidebar {
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 right: 0;
                 width: 100%;
+                z-index: 2001;
                 height: 55vh;
                 border-right: none;
                 border-top: 1px solid var(--border);
@@ -634,6 +663,7 @@
         <h3 id="quizLabel">Найдите на карте:</h3>
         <p id="quizCountry"></p>
     </div>
+    <button class="mobile-toggle" id="mobileToggle">☰</button>
     <div class="app">
         <aside class="sidebar" id="sidebar">
             <header class="header">
@@ -877,6 +907,10 @@
             $('randomBtn').addEventListener('click', randomCountry);
             $('quizBtn').addEventListener('click', toggleQuiz);
             $('resetBtn').addEventListener('click', resetProgress);
+            $('mobileToggle').addEventListener('click', () => {
+                const s = $('sidebar');
+                s.classList.toggle('open');
+            });
             $('helpClose').addEventListener('click', () => $('helpModal').classList.remove('show'));
             let debounce;
             $('search').addEventListener('input', e => {
@@ -913,4 +947,4 @@
     </script>
 </body>
 
-</html>
+</html>й
